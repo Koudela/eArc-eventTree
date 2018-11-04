@@ -2,82 +2,48 @@
 
 namespace eArc\eventTree\Event;
 
-use eArc\eventTree\Interfaces\EventHandler;
-use eArc\eventTree\Interfaces\EventType;
 use eArc\eventTree\Interfaces\PropagationType;
-use Psr\Container\ContainerInterface;
+use eArc\eventTree\traits\EventHeritable;
+use eArc\eventTree\traits\PropagatableHandler;
+use eArc\eventTree\Tree\EventTree;
+use Interfaces\EventInheritanceHandler;
+use Interfaces\PropagationHandler;
+use traits\PropagatableType;
 
-abstract class Event extends PayloadContainer implements EventType, PropagationType, EventHandler
+class Event extends PayloadContainer implements PropagationType, PropagationHandler, EventInheritanceHandler
 {
-    protected $parent;
-    protected $children = [];
-    protected $isSilenced = false;
-    protected $isSelfTerminated = false;
-    protected $areOthersTerminated = false;
+    use PropagatableType;
+    use PropagatableHandler;
+    use EventHeritable;
 
-    public function __construct(Event $parent, ?ContainerInterface $container = null)
-    {
-        parent::__construct($container);
+    public function __construct(
+        Event $parent,
+        EventTree $tree,
+        array $start = [],
+        array $destination = [],
+        ?int $maxDepth = null
+    ) {
+        parent::__construct($parent->container);
+        $this->tree = $tree;
+        $this->start = $start;
+        $this->destination = $destination;
+        $this->maxDepth = $maxDepth;
         $this->parent = $parent;
+        $this->parent->addChild($this);
     }
 
-    public function silencePropagation(): void
+    public function new()
     {
-        $this->isSilenced = true;
+        return new EventFactory(EventFactory::getRootEvent());
     }
 
-    public function terminateSelf(): void
+    public function clone()
     {
-        $this->isSelfTerminated = true;
+        return new EventFactory($this);
     }
 
-    public function endSilence(): void
+    public function __clone()
     {
-        $this->isSilenced = false;
-    }
-
-    public function isSilenced(): bool
-    {
-        return $this->isSilenced;
-    }
-
-    public function isSelfTerminated(): bool
-    {
-        return $this->isSelfTerminated;
-    }
-
-    public function dispatchNewEvent(string $FQN): Event
-    {
-        $event = new $FQN($this);
-
-        $this->children[] = $event;
-
-        return $event;
-    }
-
-    public function getParent(): ?Event
-    {
-        return $this->parent;
-    }
-
-    public function getChildren(): ?array
-    {
-        return $this->children;
-    }
-
-    public function endTermination(): void
-    {
-        $this->isSelfTerminated = false;
-        $this->areOthersTerminated = false;
-    }
-
-    public function terminateOthers(): void
-    {
-        $this->areOthersTerminated = true;
-    }
-
-    public function areOthersTerminated(): bool
-    {
-        return $this->areOthersTerminated;
+        throw new \BadMethodCallException();
     }
 }

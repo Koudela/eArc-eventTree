@@ -24,10 +24,11 @@ class EventRouter
         return $this->event;
     }
 
-    protected function dispatchEvent(): void
+    public function dispatchEvent(): void
     {
-        if ($this->event->isSelfTerminated() || !$this->currentLeaf)
-        {
+        if ($this->event->isSelfTerminated()
+            || $this->currentLeaf !== $this->currentLeaf->getRoot()
+        ) {
             return;
         }
 
