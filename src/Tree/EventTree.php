@@ -17,4 +17,11 @@ class EventTree extends EventLeaf
     {
         return $this->identifier;
     }
+
+    public function toString($indent = ''): string
+    {
+        return
+            $indent . $this->getIdentifier() . ":\n" .
+            parent::toString($indent . '  ');
+    }
 }

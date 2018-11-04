@@ -26,4 +26,33 @@ class EventLeaf implements EventObserver, TreeInheritanceHandler
 
         return $leaf;
     }
+
+    public function toString($indent = '  '): string
+    {
+        $str = $indent . "listener:\n";
+        $indent .= '  ';
+
+        foreach ($this->listener as $FQN => $patience)
+        {
+            $str .= $indent . $FQN . ":\n";
+            $str .= $indent . '  patience: ' . $patience . "\n";
+            $str .= $indent . '  type: ' . $this->type[$FQN] . "\n";
+            $str .= $this->childrenToString($indent . '  ');
+        }
+    }
+
+    protected function childrenToString($indent = '  '): string
+    {
+        $str = $indent . "children:\n";
+        $indent .= '  ';
+
+        foreach ($this->getChildren() as $name => $leaf)
+        {
+            $str .= $indent . $name . ":\n";
+            $str .= $this->getChild($name)->toString($indent . '  ');
+            $str .= $this->getChild($name)->childrenToString($indent . '  ');
+        }
+
+        return $str;
+    }
 }
