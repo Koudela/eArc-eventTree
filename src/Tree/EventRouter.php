@@ -19,6 +19,30 @@ class EventRouter
         $this->event = $event;
     }
 
+    public function getEventPhase(): string
+    {
+        if (0 === $this->depth)
+        {
+            return 'start';
+        }
+
+        $cnt = count($this->event->getDestination());
+
+        if ($cnt > $this->depth)
+        {
+            return 'before';
+        }
+
+        if ($cnt === $this->depth)
+        {
+            return 'destination';
+        }
+
+        if ($cnt < $this->depth)
+        {
+            return 'beyond';
+        }
+    }
     public function getEvent(): Event
     {
         return $this->event;
