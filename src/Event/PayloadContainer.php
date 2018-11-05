@@ -25,18 +25,29 @@ class PayloadContainer {
         $this->payload[$key] = $payload;
     }
 
-    public function getPayload($key)
+    public function getPayload(?string $key = null)
     {
+        if (null === $key)
+        {
+            return $this->payload;
+        }
+
         return $this->payload[$key];
     }
 
-    public function hasPayload($key): bool
+    public function hasPayload(string $key): bool
     {
         return isset($this->payload[$key]);
     }
 
-    public function unsetPayload($key): void
+    public function unsetPayload(?string $key = null): void
     {
+        if (null === $key)
+        {
+            $this->payload = [];
+            return;
+        }
+
         unset($this->payload[$key]);
     }
 

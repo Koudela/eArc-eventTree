@@ -16,6 +16,7 @@ class EventFactory
     protected $start;
     protected $destination;
     protected $maxDepth;
+    protected $inheritPayload = false;
 
     public static function getRootEvent(?ContainerInterface $container = null)
     {
@@ -65,6 +66,12 @@ class EventFactory
         return $this;
     }
 
+    public function inheritPayload(bool $inheritPayload = true): EventFactory
+    {
+        $this->inheritPayload = $inheritPayload;
+        return $this;
+    }
+
     public function dispatch()
     {
         $event = new Event(
@@ -72,7 +79,8 @@ class EventFactory
             $this->tree,
             $this->start,
             $this->destination,
-            $this->maxDepth
+            $this->maxDepth,
+            $this->inheritPayload
         );
         (new EventRouter($event))->dispatchEvent();
     }

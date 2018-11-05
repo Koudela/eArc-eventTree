@@ -21,7 +21,8 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
         EventTree $tree,
         array $start = [],
         array $destination = [],
-        ?int $maxDepth = null
+        ?int $maxDepth = null,
+        bool $inheritPayload = false
     ) {
         parent::__construct($parent->container);
         $this->tree = $tree;
@@ -30,6 +31,9 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
         $this->maxDepth = $maxDepth;
         $this->parent = $parent;
         $this->parent->addChild($this);
+        if ($inheritPayload) {
+            $this->payload = $parent->getPayload();
+        }
     }
 
     public function new()
