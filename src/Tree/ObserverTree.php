@@ -2,7 +2,7 @@
 
 namespace eArc\eventTree\Tree;
 
-class EventTree extends EventLeaf
+class ObserverTree extends ObserverLeaf
 {
     protected $identifier;
 
@@ -21,7 +21,7 @@ class EventTree extends EventLeaf
     public function toString($indent = ''): string
     {
         return
-            $indent . $this->getIdentifier() . ":\n" .
+            $indent . "--{$this->getIdentifier()}--\n" .
             parent::toString($indent . '  ');
     }
 }

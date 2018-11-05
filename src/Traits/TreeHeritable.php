@@ -1,9 +1,9 @@
 <?php
 
-namespace eArc\eventTree\traits;
+namespace eArc\eventTree\Traits;
 
-use eArc\eventTree\Tree\EventLeaf;
-use eArc\eventTree\Tree\EventTree;
+use eArc\eventTree\Tree\ObserverLeaf;
+use eArc\eventTree\Tree\ObserverTree;
 
 trait TreeHeritable
 {
@@ -11,7 +11,7 @@ trait TreeHeritable
     protected $children = [];
     protected $root;
 
-    public function getParent(): EventLeaf
+    public function getParent(): ObserverLeaf
     {
         return $this->parent;
     }
@@ -21,14 +21,14 @@ trait TreeHeritable
         return $this->children;
     }
 
-    abstract public function addChild(string $name): EventLeaf;
+    abstract public function addChild(string $name): ObserverLeaf;
 
-    public function getChild(string $name): EventLeaf
+    public function getChild(string $name): ObserverLeaf
     {
         return $this->children[$name];
     }
 
-    public function getRoot(): EventTree
+    public function getRoot(): ObserverTree
     {
         return $this->root;
     }

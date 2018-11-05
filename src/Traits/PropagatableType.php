@@ -1,8 +1,8 @@
 <?php
 
-namespace traits;
+namespace eArc\eventTree\Traits;
 
-use eArc\eventTree\Tree\EventTree;
+use eArc\eventTree\Tree\ObserverTree;
 
 trait PropagatableType
 {
@@ -11,7 +11,7 @@ trait PropagatableType
     protected $destination = array();
     protected $maxDepth = 0;
 
-    public function getTree(): ?EventTree
+    public function getTree(): ?ObserverTree
     {
         return $this->tree;
     }

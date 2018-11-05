@@ -3,12 +3,12 @@
 namespace eArc\eventTree\Event;
 
 use eArc\eventTree\Interfaces\PropagationType;
-use eArc\eventTree\traits\EventHeritable;
-use eArc\eventTree\traits\PropagatableHandler;
-use eArc\eventTree\Tree\EventTree;
+use eArc\eventTree\Traits\EventHeritable;
+use eArc\eventTree\Traits\PropagatableHandler;
+use eArc\eventTree\Tree\ObserverTree;
 use Interfaces\EventInheritanceHandler;
 use Interfaces\PropagationHandler;
-use traits\PropagatableType;
+use eArc\eventTree\Traits\PropagatableType;
 
 class Event extends PayloadContainer implements PropagationType, PropagationHandler, EventInheritanceHandler
 {
@@ -18,7 +18,7 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
 
     public function __construct(
         Event $parent,
-        EventTree $tree,
+        ObserverTree $tree,
         array $start = [],
         array $destination = [],
         ?int $maxDepth = null,

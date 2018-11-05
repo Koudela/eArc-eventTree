@@ -18,5 +18,8 @@
         "psr-4" : {
             "eArc\\eventTree\\" : "src"
         }
+    },
+    "require-dev": {
+        "behat/behat": "^3.5"
     }
 }

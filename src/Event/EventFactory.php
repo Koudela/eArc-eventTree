@@ -4,7 +4,7 @@ namespace eArc\eventTree\Event;
 
 use eArc\eventTree\Exceptions\ContainerHasChangedException;
 use eArc\eventTree\Tree\EventRouter;
-use eArc\eventTree\Tree\EventTree;
+use eArc\eventTree\Tree\ObserverTree;
 use Psr\Container\ContainerInterface;
 
 class EventFactory
@@ -42,7 +42,7 @@ class EventFactory
         $this->maxDepth = $event->getMaxDepth();
     }
 
-    public function tree(EventTree $eventTree): EventFactory
+    public function tree(ObserverTree $eventTree): EventFactory
     {
         $this->tree = $eventTree;
         return $this;

@@ -1,6 +1,6 @@
 <?php
 
-namespace eArc\eventTree\traits;
+namespace eArc\eventTree\Traits;
 
 use Psr\Container\ContainerInterface;
 use eArc\eventTree\Interfaces\EventListener;

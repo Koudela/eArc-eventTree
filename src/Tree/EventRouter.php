@@ -79,7 +79,7 @@ class EventRouter
         $this->currentLeaf->dispatchEvent($this);
     }
 
-    public function next(): ?EventLeaf
+    public function next(): ?ObserverLeaf
     {
         if ($this->event->areOthersTerminated())
         {
@@ -139,7 +139,7 @@ class EventRouter
 
         foreach ($this->currentChildren as $child)
         {
-            /** @var EventLeaf $child */
+            /** @var ObserverLeaf $child */
             array_push($children, ...$child->getChildren());
         }
 

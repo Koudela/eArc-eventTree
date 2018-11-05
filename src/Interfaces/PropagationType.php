@@ -2,11 +2,11 @@
 
 namespace eArc\eventTree\Interfaces;
 
-use eArc\eventTree\Tree\EventTree;
+use eArc\eventTree\Tree\ObserverTree;
 
 interface PropagationType
 {
-    public function getTree(): ?EventTree;
+    public function getTree(): ?ObserverTree;
 
     public function getStart(): array;
 
