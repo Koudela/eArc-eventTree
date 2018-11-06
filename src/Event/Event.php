@@ -6,9 +6,8 @@ use eArc\eventTree\Interfaces\PropagationType;
 use eArc\eventTree\Traits\EventHeritable;
 use eArc\eventTree\Traits\PropagatableHandler;
 use eArc\eventTree\Tree\ObserverTree;
-use eArc\eventTree\Event\EventDispatcherFactory;
-use Interfaces\EventInheritanceHandler;
-use Interfaces\PropagationHandler;
+use eArc\eventTree\Interfaces\EventInheritanceHandler;
+use eArc\eventTree\Interfaces\PropagationHandler;
 use eArc\eventTree\Traits\PropagatableType;
 
 class Event extends PayloadContainer implements PropagationType, PropagationHandler, EventInheritanceHandler
@@ -40,7 +39,7 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
         $this->eventDispatcherFactory = $parent->getEventDispatcherFactory();
     }
 
-    public function getEventFactoryFactory(): EventDispatcherFactory
+    public function getEventDispatcherFactory(): EventDispatcherFactory
     {
         return $this->eventDispatcherFactory;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Interfaces;
+namespace eArc\eventTree\Interfaces;
 
 
 interface PropagationHandler

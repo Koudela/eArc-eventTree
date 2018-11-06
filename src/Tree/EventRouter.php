@@ -72,7 +72,7 @@ class EventRouter
 
         $this->path = $this->event->getDestination();
 
-        $this->currentChildren = [];
+        $this->currentChildren = [$this->currentLeaf];
 
         $this->nthChild = 0;
 
@@ -106,7 +106,7 @@ class EventRouter
             return null;
         }
 
-        if (++$this->nthChild > count($this->currentChildren))
+        if (++$this->nthChild >= count($this->currentChildren) || 0 === $this->depth)
         {
             $this->currentChildren = $this->getNextChildren();
 
@@ -140,7 +140,10 @@ class EventRouter
         foreach ($this->currentChildren as $child)
         {
             /** @var ObserverLeaf $child */
-            array_push($children, ...$child->getChildren());
+            foreach ($child->getChildren() as $newChild)
+            {
+                array_push($children, $newChild);
+            }
         }
 
         return $children;

@@ -2,42 +2,63 @@
 
 namespace eArc\eventTree\Transformation;
 
+use eArc\eventTree\Exceptions\InvalidObserverTreeNameException;
 use eArc\eventTree\Interfaces\EventListener;
 use eArc\eventTree\Tree\ObserverLeaf;
 use eArc\eventTree\Tree\ObserverTree;
 
 class ObserverTreeFactory
 {
-    protected $rootDir;
-    protected $rootNamespace;
     protected $trees = [];
+    protected $definitionPointer;
+    protected $primaryDirectory;
+    protected $ignores;
 
     public function __construct(
         string $directoryOfObserverTrees,
         string $namespaceOfObserverTrees,
-        array $extends,
-        array $ignores
+        array $extends = array(),
+        array $ignores = array()
     ) {
-        $this->rootDir = $directoryOfObserverTrees;
-        $this->rootNamespace = $namespaceOfObserverTrees;
+        $this->primaryDirectory = $directoryOfObserverTrees;
+        $this->definitionPointer = $extends;
+        $this->definitionPointer[] = [
+            $directoryOfObserverTrees,
+            $namespaceOfObserverTrees
+        ];
+        $this->ignores = $ignores;
     }
 
     public function get(string $treeName): ObserverTree
     {
         if (!isset($this->trees[$treeName]))
         {
-            $this->trees[$treeName] = $this->initDir($treeName);
+            chdir($this->primaryDirectory);
+
+            if (!is_dir($treeName))
+            {
+                throw new InvalidObserverTreeNameException($treeName);
+            }
+
+            $this->trees[$treeName] = $this->buildTree($treeName);
         }
 
         return $this->trees[$treeName];
     }
 
-    protected function initDir(string $treeName): ObserverTree
+    protected function buildTree(string $treeName): ObserverTree
     {
-        chdir($this->rootDir);
         $tree = new ObserverTree($treeName);
 
-        $this->processDir($this->rootNamespace, $treeName, $tree);
+        foreach($this->definitionPointer as list($rootDir, $rootNamespace))
+        {
+            chdir($rootDir);
+
+            if (is_dir($treeName))
+            {
+                $this->processDir($rootNamespace, $treeName, $tree);
+            }
+        }
 
         return $tree;
     }
@@ -66,12 +87,19 @@ class ObserverTreeFactory
 
             $className = $namespace . '\\' . substr($fileName, 0,-4);
 
+            if (isset($this->ignores[$className]))
+            {
+                continue;
+            }
+
             if (is_subclass_of($className, EventListener::class))
             {
-                $patience = defined($className::EARC_LISTENER_PATIENCE)
+                /** @noinspection PhpUndefinedFieldInspection */
+                $patience = defined($className . '::EARC_LISTENER_PATIENCE')
                     ? $className::EARC_LISTENER_PATIENCE : 0;
 
-                $type = defined($className::EARC_LISTENER_TYPE)
+                /** @noinspection PhpUndefinedFieldInspection */
+                $type = defined($className . '::EARC_LISTENER_TYPE')
                     ? $className::EARC_LISTENER_TYPE : 'access';
 
                 $leaf->registerListener($className, $type, $patience);

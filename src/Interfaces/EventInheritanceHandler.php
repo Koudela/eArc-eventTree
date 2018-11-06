@@ -1,6 +1,6 @@
 <?php
 
-namespace Interfaces;
+namespace eArc\eventTree\Interfaces;
 
 use eArc\eventTree\Event\Event;
 

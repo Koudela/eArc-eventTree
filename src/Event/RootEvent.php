@@ -7,8 +7,11 @@ use Psr\Container\ContainerInterface;
 class RootEvent extends Event
 {
     /** @noinspection PhpMissingParentConstructorInspection */
-    public function __construct(?ContainerInterface $container = null)
+    public function __construct(
+        EventDispatcherFactory $eventDispatcherFactory,
+        ?ContainerInterface $container = null)
     {
+        $this->eventDispatcherFactory = $eventDispatcherFactory;
         $this->container = $container;
         $this->tree = null;
         $this->start = [];

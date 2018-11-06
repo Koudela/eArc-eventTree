@@ -16,7 +16,7 @@ trait Listenable
         $event = $eventRouter->getEvent();
         $eventPhase = $eventRouter->getEventPhase();
 
-        sort($this->listener);
+        asort($this->listener, SORT_NUMERIC);
 
         foreach($this->listener as $FQN => $patience)
         {
@@ -48,7 +48,7 @@ trait Listenable
         return new $FQN();
     }
 
-    public function registerListener(string $FQN, string $type, int $patience): void
+    public function registerListener(string $FQN, string $type = 'access', int $patience = 0): void
     {
         $this->listener[$FQN] = $patience;
         $this->type[$FQN] = $type;

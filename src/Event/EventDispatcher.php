@@ -4,6 +4,7 @@ namespace eArc\eventTree\Event;
 
 use eArc\eventTree\Transformation\ObserverTreeFactory;
 use eArc\eventTree\Tree\EventRouter;
+use eArc\eventTree\Tree\ObserverTree;
 
 class EventDispatcher
 {
@@ -31,19 +32,19 @@ class EventDispatcher
         return $this;
     }
 
-    public function start(array $start): EventDispatcher
+    public function start(array $start = array()): EventDispatcher
     {
         $this->start = $start;
         return $this;
     }
 
-    public function destination(array $destination): EventDispatcher
+    public function destination(array $destination = array()): EventDispatcher
     {
         $this->destination = $destination;
         return $this;
     }
 
-    public function maxDepth(?int $maxDepth): EventDispatcher
+    public function maxDepth(?int $maxDepth = null): EventDispatcher
     {
         $this->maxDepth = $maxDepth;
         return $this;
@@ -57,6 +58,13 @@ class EventDispatcher
 
     public function dispatch()
     {
+        if (!$this->tree instanceof ObserverTree)
+        {
+            throw new \InvalidArgumentException(
+                "On using the root event as parent, selecting an observer tree with `tree()` is mandatory."
+            );
+        }
+
         $event = new Event(
             $this->parentOfNewEvent,
             $this->tree,
@@ -65,6 +73,7 @@ class EventDispatcher
             $this->maxDepth,
             $this->inheritPayload
         );
+
         (new EventRouter($event))->dispatchEvent();
     }
 }

@@ -19,7 +19,7 @@ class PayloadContainer {
     {
         if (isset($this->payload[$key]))
         {
-            throw new PayloadOverwriteException("Key `$key is already used.");
+            throw new PayloadOverwriteException("Key `$key` is already used.");
         }
 
         $this->payload[$key] = $payload;

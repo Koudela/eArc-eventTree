@@ -15,7 +15,7 @@ class EventDispatcherFactory
         ?ContainerInterface $container = null
     ) {
         $this->observerTreeFactory = $observerTreeFactory;
-        $this->rootEvent = new RootEvent($container);
+        $this->rootEvent = new RootEvent($this, $container);
     }
 
     public function build(?Event $event = null): EventDispatcher
