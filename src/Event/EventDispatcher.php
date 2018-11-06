@@ -2,15 +2,12 @@
 
 namespace eArc\eventTree\Event;
 
-use eArc\eventTree\Exceptions\ContainerHasChangedException;
+use eArc\eventTree\Transformation\ObserverTreeFactory;
 use eArc\eventTree\Tree\EventRouter;
-use eArc\eventTree\Tree\ObserverTree;
-use Psr\Container\ContainerInterface;
 
-class EventFactory
+class EventDispatcher
 {
-    protected static $rootEvent;
-
+    protected $treeFactory;
     protected $parentOfNewEvent;
     protected $tree;
     protected $start;
@@ -18,23 +15,9 @@ class EventFactory
     protected $maxDepth;
     protected $inheritPayload = false;
 
-    public static function getRootEvent(?ContainerInterface $container = null)
+    public function __construct(ObserverTreeFactory $treeFactory, Event $event)
     {
-        if (!self::$rootEvent)
-        {
-            self::$rootEvent = new RootEvent($container);
-        }
-
-        if (self::$rootEvent->getContainer() !== $container)
-        {
-            throw new ContainerHasChangedException();
-        }
-
-        return self::$rootEvent;
-    }
-
-    public function __construct(Event $event)
-    {
+        $this->treeFactory = $treeFactory;
         $this->parentOfNewEvent = $event;
         $this->tree = $event->getTree();
         $this->start = $event->getStart();
@@ -42,31 +25,31 @@ class EventFactory
         $this->maxDepth = $event->getMaxDepth();
     }
 
-    public function tree(ObserverTree $eventTree): EventFactory
+    public function tree(string $eventTreeName): EventDispatcher
     {
-        $this->tree = $eventTree;
+        $this->tree = $this->treeFactory->get($eventTreeName);
         return $this;
     }
 
-    public function start(array $start): EventFactory
+    public function start(array $start): EventDispatcher
     {
         $this->start = $start;
         return $this;
     }
 
-    public function destination(array $destination): EventFactory
+    public function destination(array $destination): EventDispatcher
     {
         $this->destination = $destination;
         return $this;
     }
 
-    public function maxDepth(?int $maxDepth): EventFactory
+    public function maxDepth(?int $maxDepth): EventDispatcher
     {
         $this->maxDepth = $maxDepth;
         return $this;
     }
 
-    public function inheritPayload(bool $inheritPayload = true): EventFactory
+    public function inheritPayload(bool $inheritPayload = true): EventDispatcher
     {
         $this->inheritPayload = $inheritPayload;
         return $this;

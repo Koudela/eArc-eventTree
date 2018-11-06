@@ -12,8 +12,12 @@ class ObserverTreeFactory
     protected $rootNamespace;
     protected $trees = [];
 
-    public function __construct(string $directoryOfObserverTrees, string $namespaceOfObserverTrees)
-    {
+    public function __construct(
+        string $directoryOfObserverTrees,
+        string $namespaceOfObserverTrees,
+        array $extends,
+        array $ignores
+    ) {
         $this->rootDir = $directoryOfObserverTrees;
         $this->rootNamespace = $namespaceOfObserverTrees;
     }

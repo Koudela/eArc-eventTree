@@ -6,6 +6,7 @@ use eArc\eventTree\Interfaces\PropagationType;
 use eArc\eventTree\Traits\EventHeritable;
 use eArc\eventTree\Traits\PropagatableHandler;
 use eArc\eventTree\Tree\ObserverTree;
+use eArc\eventTree\Event\EventDispatcherFactory;
 use Interfaces\EventInheritanceHandler;
 use Interfaces\PropagationHandler;
 use eArc\eventTree\Traits\PropagatableType;
@@ -15,6 +16,8 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
     use PropagatableType;
     use PropagatableHandler;
     use EventHeritable;
+
+    protected $eventDispatcherFactory;
 
     public function __construct(
         Event $parent,
@@ -34,16 +37,22 @@ class Event extends PayloadContainer implements PropagationType, PropagationHand
         if ($inheritPayload) {
             $this->payload = $parent->getPayload();
         }
+        $this->eventDispatcherFactory = $parent->getEventDispatcherFactory();
+    }
+
+    public function getEventFactoryFactory(): EventDispatcherFactory
+    {
+        return $this->eventDispatcherFactory;
     }
 
     public function new()
     {
-        return new EventFactory(EventFactory::getRootEvent());
+        return $this->eventDispatcherFactory->build();
     }
 
     public function clone()
     {
-        return new EventFactory($this);
+        return $this->eventDispatcherFactory->build($this);
     }
 
     public function __clone()
