@@ -5,19 +5,19 @@ namespace eArc\eventTree\Interfaces;
 
 interface PropagationHandler
 {
-    public function silencePropagation(): void;
+    public function silence(): void;
 
     public function isSilenced(): bool;
 
     public function endSilence(): void;
 
-    public function terminateSelf(): void;
+    public function terminate(): void;
 
-    public function isSelfTerminated(): bool;
+    public function isTerminated(): bool;
 
-    public function terminateOthers(): void;
+    public function tie(): void;
 
-    public function areOthersTerminated(): bool;
+    public function isTied(): bool;
 
-    public function endTermination(): void;
+    public function reanimate(): void;
 }

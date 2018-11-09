@@ -50,7 +50,7 @@ class EventRouter
 
     public function dispatchEvent(): void
     {
-        if ($this->event->isSelfTerminated()
+        if ($this->event->isTerminated()
             || $this->currentLeaf !== $this->currentLeaf->getRoot()
         ) {
             return;
@@ -81,14 +81,14 @@ class EventRouter
 
     public function next(): ?ObserverLeaf
     {
-        if ($this->event->areOthersTerminated())
+        if ($this->event->isTied())
         {
             $this->currentChildren = [$this->currentLeaf];
 
             $this->nthChild = 0;
         }
 
-        if ($this->event->isSelfTerminated())
+        if ($this->event->isTerminated())
         {
             unset($this->currentChildren[$this->nthChild]);
         }
@@ -98,7 +98,7 @@ class EventRouter
             return null;
         }
 
-        $this->event->endTermination();
+        $this->event->reanimate();
 
         if (null !== $this->event->getMaxDepth()
             && $this->depth >= $this->event->getMaxDepth()
@@ -127,7 +127,7 @@ class EventRouter
     {
         if (isset($this->path[$this->depth]))
         {
-            if ($this->event->isSelfTerminated())
+            if ($this->event->isTerminated())
             {
                 return [];
             }

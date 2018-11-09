@@ -5,10 +5,10 @@ namespace eArc\eventTree\Traits;
 trait PropagatableHandler
 {
     protected $isSilenced = false;
-    protected $isSelfTerminated = false;
-    protected $areOthersTerminated = false;
+    protected $isTerminated = false;
+    protected $isTied = false;
 
-    public function silencePropagation(): void
+    public function silence(): void
     {
         $this->isSilenced = true;
     }
@@ -23,29 +23,35 @@ trait PropagatableHandler
         $this->isSilenced = false;
     }
 
-    public function terminateSelf(): void
+    public function terminate(): void
     {
-        $this->isSelfTerminated = true;
+        $this->isTerminated = true;
     }
 
-    public function isSelfTerminated(): bool
+    public function isTerminated(): bool
     {
-        return $this->isSelfTerminated;
+        return $this->isTerminated;
     }
 
-    public function terminateOthers(): void
+    public function tie(): void
     {
-        $this->areOthersTerminated = true;
+        $this->isTied = true;
     }
 
-    public function areOthersTerminated(): bool
+    public function isTied(): bool
     {
-        return $this->areOthersTerminated;
+        return $this->isTied;
     }
 
-    public function endTermination(): void
+    public function reanimate(): void
     {
-        $this->isSelfTerminated = false;
-        $this->areOthersTerminated = false;
+        $this->isTerminated = false;
+        $this->isTied = false;
+    }
+
+    public function kill(): void
+    {
+        $this->terminate();
+        $this->tie();
     }
 }

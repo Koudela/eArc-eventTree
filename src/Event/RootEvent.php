@@ -18,9 +18,9 @@ class RootEvent extends Event
         $this->destination = [];
         $this->maxDepth = 0;
         $this->parent = null;
-        $this->silencePropagation();
-        $this->terminateSelf();
-        $this->terminateOthers();
+        $this->silence();
+        $this->terminate();
+        $this->tie();
     }
 
     public function toString(): string
