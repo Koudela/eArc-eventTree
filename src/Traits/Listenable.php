@@ -8,10 +8,11 @@ use eArc\eventTree\Tree\EventRouter;
 
 trait Listenable
 {
+    protected $initialisedListener = [];
     protected $listener = [];
     protected $type = [];
 
-    public function dispatchEvent(EventRouter $eventRouter): void
+    public function callListeners(EventRouter $eventRouter): void
     {
         $event = $eventRouter->getEvent();
         $eventPhase = $eventRouter->getEventPhase();
@@ -32,10 +33,7 @@ trait Listenable
             }
         }
 
-        if ($nextLeaf = $eventRouter->next())
-        {
-            $nextLeaf->dispatchEvent($eventRouter);
-        }
+        $eventRouter->nextLeaf();
     }
 
     protected function getListener(?ContainerInterface $container, string $FQN): EventListener
@@ -45,7 +43,12 @@ trait Listenable
             return $container->get($FQN);
         }
 
-        return new $FQN();
+        if (!$this->initialisedListener[$FQN])
+        {
+            $this->initialisedListener[$FQN] = new $FQN();
+        }
+
+        return $this->initialisedListener[$FQN];
     }
 
     public function registerListener(string $FQN, string $type = 'access', int $patience = 0): void
@@ -54,8 +57,9 @@ trait Listenable
         $this->type[$FQN] = $type;
     }
 
-    public function unRegisterListener(string $FQN): void
+    public function unregisterListener(string $FQN): void
     {
+        unset($this->initialisedListener[$FQN]);
         unset($this->listener[$FQN]);
         unset($this->type[$FQN]);
     }

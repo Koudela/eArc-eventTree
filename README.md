@@ -13,8 +13,9 @@ To enrich the PHP-community by this advantage I have developed the observer tree
 pattern/architecture which is in fact a combination of the composite and
 observer pattern and acts as architectural base for the eArc eventTree package.
 
-It can be used to implement complex iterators, the broker, the chain of 
-responsibility and the strategy pattern, MVC/ADR and many more.
+It can be used as an easy way to expose lifecycle hooks, to implement complex 
+iterators, the broker, the chain of responsibility or the strategy pattern, 
+MVC/ADR and many more.
 
 As of all eArc packages one of its driving ideas is to make your code as
 explicit and easy to understand as possible without imposing to much 

@@ -43,6 +43,7 @@ class EventRouter
             return 'beyond';
         }
     }
+
     public function getEvent(): Event
     {
         return $this->event;
@@ -76,10 +77,10 @@ class EventRouter
 
         $this->nthChild = 0;
 
-        $this->currentLeaf->dispatchEvent($this);
+        $this->currentLeaf->callListeners($this);
     }
 
-    public function next(): ?ObserverLeaf
+    public function nextLeaf(): void
     {
         if ($this->event->isTied())
         {
@@ -95,7 +96,7 @@ class EventRouter
 
         if (empty($this->currentChildren))
         {
-            return null;
+            return;
         }
 
         $this->event->reanimate();
@@ -103,7 +104,7 @@ class EventRouter
         if (null !== $this->event->getMaxDepth()
             && $this->depth >= $this->event->getMaxDepth()
         ) {
-            return null;
+            return;
         }
 
         if (++$this->nthChild >= count($this->currentChildren) || 0 === $this->depth)
@@ -114,13 +115,13 @@ class EventRouter
 
             if (empty($this->currentChildren))
             {
-                return null;
+                return;
             }
 
             $this->nthChild = 0;
         }
 
-        return $this->currentChildren[$this->nthChild];
+        $this->currentChildren[$this->nthChild]->callListeners($this);
     }
 
     protected function getNextChildren(): array
