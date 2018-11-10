@@ -20,4 +20,6 @@ interface PropagationHandler
     public function isTied(): bool;
 
     public function reanimate(): void;
+
+    public function kill(): void;
 }

@@ -1,8 +1,11 @@
-# eArc-eventTree
+[event](doc/event.md) | [listener](doc/listener.md) | 
+[observer](doc/observer.md) | [tree](doc/tree.md) | [routing](doc/routing.md)
+
+# eArc/eventTree
 
 Developer of PHP-applications might know the debug hell that lives right beside
 the massive use of event-listeners. The fancy thing is most JS-developer do not 
-know this pain, although JS-Code often is heavy loaded with event-listeners.
+know this pain, although JS-Code is often heavy loaded with event-listeners.
 Some people suspect the major difference is the DOM. JS-developer always have a 
 picture where the event-listeners hook in.
 
@@ -10,7 +13,7 @@ To enrich the PHP-community by this advantage I have developed the observer tree
 pattern/architecture which is in fact a combination of the composite and
 observer pattern and acts as architectural base for the eArc eventTree package.
 
-It can be used to implement complex iterators, a message broker, the chain of 
+It can be used to implement complex iterators, the broker, the chain of 
 responsibility and the strategy pattern, MVC/ADR and many more.
 
 As of all eArc packages one of its driving ideas is to make your code as
@@ -70,7 +73,8 @@ Listeners can listen to one or all four event phases.
 
 If a dependency container is injected into the `eventDispatcherFactory` each
 event has a getter for this container, such that the listeners can be used as 
-(front) controllers. (eArc/router v1.0 will map http requests to event trees.)
+front controllers. ([eArc/router](http://github.com/Koudela/eArc-router) will 
+map http requests using event trees as of v1.0)
 
 ## The listener
 
@@ -183,6 +187,9 @@ dispatch the event as before.
 It might be worth to mention that the trees get initialized when they first get
 called. eArc/eventTree will not construct any of your observer or listener
 classes before.
+
+[event](doc/event.md) | [listener](doc/listener.md) | 
+[observer](doc/observer.md) | [tree](doc/tree.md) | [routing](doc/routing.md)
 
 #TODO
 - add detailed object documentation
