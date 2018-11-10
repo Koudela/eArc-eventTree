@@ -15,6 +15,7 @@ class EventDispatcher
     protected $destination;
     protected $maxDepth;
     protected $inheritPayload = false;
+    protected $payload = [];
 
     public function __construct(ObserverTreeFactory $treeFactory, Event $event)
     {
@@ -56,6 +57,11 @@ class EventDispatcher
         return $this;
     }
 
+    public function addPayload(string $key, $payload)
+    {
+        $this->payload[$key] = $payload;
+    }
+
     public function dispatch()
     {
         if (!$this->tree instanceof ObserverTree)
@@ -73,6 +79,11 @@ class EventDispatcher
             $this->maxDepth,
             $this->inheritPayload
         );
+
+        foreach ($this->payload as $key => $payload)
+        {
+            $event->setPayload($key, $payload);
+        }
 
         (new EventRouter($event))->dispatchEvent();
     }

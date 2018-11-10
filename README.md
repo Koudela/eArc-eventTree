@@ -7,7 +7,11 @@ Some people suspect the major difference is the DOM. JS-developer always have a
 picture where the event-listeners hook in.
 
 To enrich the PHP-community by this advantage I have developed the observer tree
-pattern/architecture and wrote the eArc eventTree package.
+pattern/architecture which is in fact a combination of the composite and
+observer pattern and acts as architectural base for the eArc eventTree package.
+
+It can be used to implement complex iterators, a message broker, the chain of 
+responsibility and the strategy pattern, MVC/ADR and many more.
 
 As of all eArc packages one of its driving ideas is to make your code as
 explicit and easy to understand as possible without imposing to much 
@@ -49,7 +53,7 @@ Events can be configured to restrict their traveling by three parameter `start`,
 `destination` and `maxDepth`. Each event travels from the `start` observer 
 vertice to the `destination` observer vertice in a linear manner. Thereafter it 
 behaves as if it performs a wide search on the remaining tree. `maxDepth` 
-restricts the overall travel to vertices that a maximal distance from the 
+restricts the overall travel to vertices with a maximal distance from the 
 `start` vertice of `maxDepth`. If `maxDepth` is configured to `null` there is 
 no restriction. If `destination` is `null` the `start` vertice is also the 
 `destination` vertice. And if `start` is `null` the event starts at the root of 
@@ -66,7 +70,7 @@ Listeners can listen to one or all four event phases.
 
 If a dependency container is injected into the `eventDispatcherFactory` each
 event has a getter for this container, such that the listeners can be used as 
-controllers. (eArc/router v1.0 will map http requests to event trees.)
+(front) controllers. (eArc/router v1.0 will map http requests to event trees.)
 
 ## The listener
 
@@ -89,13 +93,21 @@ tree where the current observer vertice is the root. They can stop its travel on
 this tree part by `$event.terminate()`. And they can even kill the event by
 `$event.kill()`. 
 
+## Building trees at runtime
+
+If you use event trees as complex iterators it may not be possible to restrict
+yourself to predefined tree structures. In this case (and maybe others) where it 
+is not beneficial to stick to close to the explicit programming paradigm you
+are encouraged to use the `ObserverTree` and `ObserverLeaf` classes directly.  
+
 ## Conclusion
 
-With this at hand you can tie the main part of your process-logic to the 
-event trees while keeping your other objects doing what objects can do best:
-handling state. Of course you can stay to your architectural style as well, use
-your preferred framework furthermore and add event trees as an explicit way of 
-event handling.
+With this library at hand you can tie the main part of your process-logic to the 
+event trees while keeping your other objects decoupled doing what objects can
+do best: handling state. 
+
+Of course you can stay to your architectural style as well, use your preferred 
+framework furthermore and add event trees as an explicit way of event handling.
 
 ## Example
 
@@ -115,11 +127,11 @@ $OTF = new ObserverTreeFactory(
 );
 ```
 
-Now your code knows where your event tree live. You can use `toString()` to 
-debug the tree. 
+Now your code knows where your event trees live. You can use `toString()` to 
+debug any tree. 
 
 ```php
-echo $OTF->get('ObserverTree1')->toString();
+echo $OTF->get('myFirstObserverTree')->toString();
 ```
 
 Inject the `ObserverTreeFactory` into an `EventDispatcherFactory`. As second 
@@ -133,7 +145,7 @@ $EDF = new EventDispatcherFactory($OTF, null);
 
 `build()` gives you a new `EventDispatcher`. You can configure the event which
 is going to be dispatched with `tree()`, `start()`, `destination()` and 
-`maxDepth()` in any order you like. And the dispatch it with `dispatch()`; 
+`maxDepth()` in any order you like. And then dispatch it with `dispatch()`; 
 
 
 ```php
@@ -169,7 +181,7 @@ Every listener can trigger new events. `$event->new()` is a shortcut for
 dispatch the event as before. 
 
 It might be worth to mention that the trees get initialized when they first get
-called. eArc/eventTree will not construct any of its observer or listener
+called. eArc/eventTree will not construct any of your observer or listener
 classes before.
 
 #TODO
