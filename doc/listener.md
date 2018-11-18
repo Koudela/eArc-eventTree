@@ -65,6 +65,7 @@ class MyFooListener implements EventListener
         ...
     }
 }
+```
 
 If you have supplied a container to your `EventDispatcherFactory` the listener 
 is retrieved from it. Otherwise it is initialised on the first call.

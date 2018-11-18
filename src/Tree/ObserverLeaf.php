@@ -34,7 +34,8 @@ class ObserverLeaf implements EventObserver, TreeInheritanceHandler
         foreach ($this->listener as $FQN => $patience)
         {
             $str .= $indent . '  ' . $FQN . ': '
-                . "{ patience: $patience, type: {$this->type[$FQN]} }\n";
+                . "{ patience: $patience, type: "
+                . $this->eventPhasesToString($this->eventPhases[$FQN]) . " }\n";
         }
 
         return $str . $this->childrenToString($indent);
@@ -52,5 +53,32 @@ class ObserverLeaf implements EventObserver, TreeInheritanceHandler
         }
 
         return $str;
+    }
+
+    protected function eventPhasesToString(int $eventPhases): string
+    {
+        if (EventRouter::PHASE_ACCESS === $eventPhases) {
+            return 'access';
+        }
+
+        $arr = [];
+
+        if (EventRouter::PHASE_START & $eventPhases) {
+            $arr[] = 'start';
+        }
+
+        if (EventRouter::PHASE_BEFORE & $eventPhases) {
+            $arr[] = 'before';
+        }
+
+        if (EventRouter::PHASE_DESTINATION & $eventPhases) {
+            $arr[] = 'destination';
+        }
+
+        if (EventRouter::PHASE_BEYOND & $eventPhases) {
+            $arr[] = 'beyond';
+        }
+
+        return implode(' | ', $arr);
     }
 }
