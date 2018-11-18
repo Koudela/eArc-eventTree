@@ -64,7 +64,7 @@ class EventDispatcher
 
     public function dispatch(?ObserverTree $observerTree = null)
     {
-        if (!$observerTree && $this->tree instanceof ObserverTree)
+        if (!$observerTree && !$this->tree instanceof ObserverTree)
         {
             throw new \InvalidArgumentException(
                 'On using the root event as parent, selecting an observer tree is mandatory.'

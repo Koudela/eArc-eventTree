@@ -42,7 +42,7 @@ trait Listenable
             return $container->get($FQN);
         }
 
-        if (!$this->initialisedListener[$FQN])
+        if (!isset($this->initialisedListener[$FQN]))
         {
             $this->initialisedListener[$FQN] = new $FQN();
         }
