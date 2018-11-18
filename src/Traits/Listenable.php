@@ -10,12 +10,11 @@ trait Listenable
 {
     protected $initialisedListener = [];
     protected $listener = [];
-    protected $type = [];
+    protected $eventPhases = [];
 
     public function callListeners(EventRouter $eventRouter): void
     {
         $event = $eventRouter->getEvent();
-        $eventPhase = $eventRouter->getEventPhase();
 
         asort($this->listener, SORT_NUMERIC);
 
@@ -27,7 +26,7 @@ trait Listenable
                 break;
             }
 
-            if ($this->type[$FQN] === 'access' || $this->type[$FQN] === $eventPhase)
+            if ($eventRouter->matchesEventPhase($this->eventPhases[$FQN]))
             {
                 $this->getListener($event->getContainer(), $FQN)->processEvent($event);
             }
@@ -51,16 +50,16 @@ trait Listenable
         return $this->initialisedListener[$FQN];
     }
 
-    public function registerListener(string $FQN, string $type = 'access', int $patience = 0): void
+    public function registerListener(string $FQN, int $eventPhases = EventRouter::PHASE_ACCESS, float $patience = 0): void
     {
         $this->listener[$FQN] = $patience;
-        $this->type[$FQN] = $type;
+        $this->eventPhases[$FQN] = $eventPhases;
     }
 
     public function unregisterListener(string $FQN): void
     {
         unset($this->initialisedListener[$FQN]);
         unset($this->listener[$FQN]);
-        unset($this->type[$FQN]);
+        unset($this->eventPhases[$FQN]);
     }
 }

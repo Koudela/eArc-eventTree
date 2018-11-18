@@ -10,10 +10,10 @@ Their traveling is affected by two parties:
 - the event listener
 
 Their traveling can be splitted into four phases: 
-- `start`
-- `between`
-- `destination`
-- `beyond`
+- `start` (`EventRouter::PHASE_START`)
+- `between` (`EventRouter::PHASE_BETWEEN`)
+- `destination` (`EventRouter::PHASE_DESTINATION`)
+- `beyond` (`EventRouter::PHASE_BEYOND`)
 
 ## the influence of the event dispatcher
 
@@ -35,7 +35,7 @@ example if `0` is supplied as argument the event would die after visiting the
 starting observer leaf.      
   
 These criteria cannot be altered once the event is dispatched. They define
-the four phases.
+the four event phases.
 
 ## the influence of the event listeners
 
@@ -62,12 +62,12 @@ each leaf leads the event depper into the tree.
 In the `destination` and the `beyond` phase the traveling scheme is altered to 
 a wide search on the accessed tree parts. This means all children of the 
 destination leaf are visited. Then all children of these children are visited. 
-If this is completed all children of the children of the children of the 
+When this is completed all children of the children of the children of the 
 destination leaf are visited and so on provided no listener inhibits the 
 traveling.    
 
-The listener can listen to a specific phase or to `access`. The `access` type is 
-active in all phases.
+The listener can listen to a specific phase or to more phases. The
+`EventRouter::PHASE_ACCESS` type is shortcut for being active in all phases.
 
 ## other influences
 

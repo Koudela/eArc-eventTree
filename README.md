@@ -13,9 +13,9 @@ To enrich the PHP-community by this advantage I have developed the observer tree
 pattern/architecture which is in fact a combination of the composite and
 observer pattern and acts as architectural base for the eArc eventTree package.
 
-It can be used as an easy way to expose lifecycle hooks, to implement complex 
-iterators, the broker, the chain of responsibility or the strategy pattern, 
-MVC/ADR and many more.
+It can be used as an easy way to expose lifecycle hooks (an incredible powerful
+tool in a collaborative workflow), to implement complex iterators, the broker, 
+the chain of responsibility or the strategy pattern, MVC/ADR and many more.
 
 As of all eArc packages one of its driving ideas is to make your code as
 explicit and easy to understand as possible without imposing to much 
@@ -70,7 +70,7 @@ This gives birth to four event phases:
     is null there is no `destination` phase.)
 - `beyond` - the event has traveled beyond its `destination` vertice.
 
-Listeners can listen to one or all four event phases.
+Listeners can listen to one, two, three or all four event phases.
 
 If a dependency container is injected into the `eventDispatcherFactory` each
 event has a getter for this container, such that the listeners can be used as 
@@ -86,9 +86,12 @@ more event trees.
 You can determine by the constant `EARC_LISTENER_PATIENCE` the order in which 
 the listener get called by their observer.
 
-Listeners can have one of four types. `start`, `before`, `destination`, `beyond`
-and `access`. `access` listeners listen to all four event phases. All other
-types are restricted to the specific event phase. 
+The event phase(s) the listener should listen to can be expressed by the 
+constant `EARC_LISTENER_TYPE`. You can use the `EventRouter` constants
+`PHASE_START`, `PHASE_BEFORE`, `PHASE_DESTINATION` and `PHASE_BEYOND` in a 
+bit field (concat them by `|`). If the constant `EARC_LISTENER_TYPE` is not used 
+the `PHASE_ACCESS` is used, which is a shortcut for listening to all four event 
+phases. 
 
 Listeners can manipulate the traveling of events. They can silence them by
 `$event.silence()`, such that no listener in the same directory can
@@ -108,8 +111,8 @@ are encouraged to use the `ObserverTree` and `ObserverLeaf` classes directly.
 ## Conclusion
 
 With this library at hand you can tie the main part of your process-logic to the 
-event trees while keeping your other objects decoupled doing what objects can
-do best: handling state. 
+event trees (plus exposing lifecycle hooks to it) while keeping your other
+objects decoupled doing what objects can do best: handling state. 
 
 Of course you can stay to your architectural style as well, use your preferred 
 framework furthermore and add event trees as an explicit way of event handling.
@@ -166,11 +169,13 @@ namespace your\eventTree\Namespace\myFirstObserverTree\preExport;
 
 use eArc\eventTree\Event\Event;
 use eArc\eventTree\Interfaces\EventListener;
+use eArc\eventTree\Tree\EventRouter;
 
 class MyFooListener implements EventListener
 {
     const EARC_LISTENER_PATIENCE = 20;
-    const EARC_LISTENER_TYPE = 'access';
+    const EARC_LISTENER_TYPE = EventRouter::PHASE_START | EventRouter::PHASE_DESTINATION;
+    const EARC_LISTENER_CONTAINER_ID = 'my_project.my_foo_listener';
 
     public function processEvent(Event $event)
     {

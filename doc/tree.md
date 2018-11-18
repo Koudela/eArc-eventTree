@@ -110,5 +110,29 @@ autoloading necessity and can therefore not be overwritten. To unregister them
 add their fully qualified class name or their container name as key to the
 ignore array which is the fourth argument of the `ObserverTreeFactory`. 
 
+```php
+use eArc\eventTree\Transformation\ObserverTreeFactory;
+
+$OTF = new ObserverTreeFactory(
+    '/absolute/path/to/your/eventTree/root', 
+    'your\\eventTree\\root\\namespace',
+    [
+        [
+            '/absolute/path/to/a/library/eventTree/root', 
+            'namspace\\of\\this\\library\\eventTree\\root'
+        ],
+        [
+            '/absolute/path/to/another/library/eventTree/root',            
+            'namspace\\of\\that\\other\\library\\eventTree\\root'
+        ]    
+    ],
+    [
+        'fully\\qualified\\clasname\\of\\blacklistet\\listener\\foo' => true,
+        'this\\listener\\is\\ignored\\too' => true,
+        'the\\values\\in\\this\\listener\\array\\have\\no\\meaning\\yet' => 42,
+    ]
+);
+```
+
 [event](event.md) | [listener](listener.md) | 
 [observer](observer.md) | [index](../README.md) | [routing](routing.md)

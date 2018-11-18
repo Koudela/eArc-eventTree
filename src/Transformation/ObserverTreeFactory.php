@@ -4,6 +4,7 @@ namespace eArc\eventTree\Transformation;
 
 use eArc\eventTree\Exceptions\InvalidObserverTreeNameException;
 use eArc\eventTree\Interfaces\EventListener;
+use eArc\eventTree\Tree\EventRouter;
 use eArc\eventTree\Tree\ObserverLeaf;
 use eArc\eventTree\Tree\ObserverTree;
 
@@ -100,9 +101,13 @@ class ObserverTreeFactory
 
                 /** @noinspection PhpUndefinedFieldInspection */
                 $type = defined($className . '::EARC_LISTENER_TYPE')
-                    ? $className::EARC_LISTENER_TYPE : 'access';
+                    ? $className::EARC_LISTENER_TYPE : EventRouter::PHASE_ACCESS;
 
-                $leaf->registerListener($className, $type, $patience);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $name = defined($className . '::EARC_LISTENER_CONTAINER_ID')
+                    ? $className::EARC_LISTENER_CONTAINER_ID : $className;
+
+                $leaf->registerListener($name, $type, $patience);
             }
         }
     }

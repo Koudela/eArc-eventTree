@@ -6,6 +6,13 @@ use eArc\eventTree\Event\Event;
 
 class EventRouter
 {
+    const PHASE_START = 1;
+    const PHASE_BEFORE = 2;
+    const PHASE_DESTINATION = 4;
+    const PHASE_BEYOND = 8;
+    const PHASE_ACCESS = 15;
+
+    protected $eventPhase;
     protected $currentLeaf;
     protected $event;
     protected $depth;
@@ -19,28 +26,31 @@ class EventRouter
         $this->event = $event;
     }
 
-    public function getEventPhase(): string
+    public function matchesEventPhase(int $eventPhaseBitMask): bool
     {
-        if (0 === $this->depth)
-        {
-            return 'start';
-        }
+        return (0 !== ($eventPhaseBitMask & $this->eventPhase));
+    }
 
+    protected function setEventPhase(): void
+    {
+        $this->nthChild = 0;
         $cnt = count($this->event->getDestination());
 
-        if ($cnt > $this->depth)
+        if (0 === $this->depth)
         {
-            return 'before';
+            $this->eventPhase = self::PHASE_START;
         }
-
-        if ($cnt === $this->depth)
+        elseif ($cnt > $this->depth)
         {
-            return 'destination';
+            $this->eventPhase = self::PHASE_BEFORE;
         }
-
-        if ($cnt < $this->depth)
+        elseif ($cnt === $this->depth)
         {
-            return 'beyond';
+            $this->eventPhase = self::PHASE_DESTINATION;
+        }
+        elseif ($cnt < $this->depth)
+        {
+            $this->eventPhase = self::PHASE_BEYOND;
         }
     }
 
@@ -75,7 +85,7 @@ class EventRouter
 
         $this->currentChildren = [$this->currentLeaf];
 
-        $this->nthChild = 0;
+        $this->setEventPhase();
 
         $this->currentLeaf->callListeners($this);
     }
@@ -86,7 +96,7 @@ class EventRouter
         {
             $this->currentChildren = [$this->currentLeaf];
 
-            $this->nthChild = 0;
+            $this->setEventPhase();
         }
 
         if ($this->event->isTerminated())
@@ -118,7 +128,7 @@ class EventRouter
                 return;
             }
 
-            $this->nthChild = 0;
+            $this->setEventPhase();
         }
 
         $this->currentChildren[$this->nthChild]->callListeners($this);
@@ -140,7 +150,7 @@ class EventRouter
 
         foreach ($this->currentChildren as $child)
         {
-            /** @var ObserverLeaf $child */
+            /* @var ObserverLeaf $child */
             foreach ($child->getChildren() as $newChild)
             {
                 array_push($children, $newChild);
