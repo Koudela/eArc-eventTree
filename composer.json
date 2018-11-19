@@ -1,9 +1,9 @@
 {
-    "name": "earc/router",
-    "description": "eArc - the explicit architecture framework - event component",
+    "name": "earc/event-tree",
+    "description": "eArc - the explicit architecture framework - event tree component",
     "type": "library",
     "license": "MIT",
-    "version": "0.1",
+    "version": "0.0",
     "authors": [
         {
             "name": "Thomas Koudela",
