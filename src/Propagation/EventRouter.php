@@ -1,8 +1,17 @@
 <?php
+/**
+* e-Arc Framework - the explicit Architecture Framework
+*
+* @package earc/event-tree
+* @link https://github.com/Koudela/earc-eventTree/
+* @copyright Copyright (c) 2018 Thomas Koudela
+* @license http://opensource.org/licenses/MIT MIT License
+*/
 
-namespace eArc\eventTree\Tree;
+namespace eArc\EventTree\Tree;
 
 use eArc\eventTree\Event\Event;
+use eArc\EventTree\Event\PropagatableEventHandler;
 
 class EventRouter
 {
@@ -20,7 +29,7 @@ class EventRouter
     protected $currentChildren;
     protected $nthChild;
 
-    public function __construct(Event $event)
+    public function __construct(PropagatableEventHandler $event)
     {
         $this->currentLeaf = $event->getTree();
         $this->event = $event;
@@ -87,7 +96,9 @@ class EventRouter
 
         $this->setEventPhase();
 
-        $this->currentLeaf->callListeners($this);
+        $this->currentLeaf->callListeners($this->event, $this->eventPhase);
+
+        $this->nextLeaf();
     }
 
     public function nextLeaf(): void
@@ -131,7 +142,9 @@ class EventRouter
             $this->setEventPhase();
         }
 
-        $this->currentChildren[$this->nthChild]->callListeners($this);
+        $this->currentChildren[$this->nthChild]->callListeners($this->event, $this->eventPhase);
+
+        $this->nextLeaf();
     }
 
     protected function getNextChildren(): array
@@ -158,5 +171,39 @@ class EventRouter
         }
 
         return $children;
+    }
+
+    /**
+     * Transforms the eventPhases to a string representation.
+     *
+     * @param int $eventPhases
+     *
+     * @return string
+     */
+    public static function eventPhasesToString(int $eventPhases): string
+    {
+        if (EventRouter::PHASE_ACCESS === $eventPhases) {
+            return 'access';
+        }
+
+        $arr = [];
+
+        if (EventRouter::PHASE_START & $eventPhases) {
+            $arr[] = 'start';
+        }
+
+        if (EventRouter::PHASE_BEFORE & $eventPhases) {
+            $arr[] = 'before';
+        }
+
+        if (EventRouter::PHASE_DESTINATION & $eventPhases) {
+            $arr[] = 'destination';
+        }
+
+        if (EventRouter::PHASE_BEYOND & $eventPhases) {
+            $arr[] = 'beyond';
+        }
+
+        return implode(' | ', $arr);
     }
 }

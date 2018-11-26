@@ -1,61 +1,54 @@
 <?php
+/**
+ * e-Arc Framework - the explicit Architecture Framework
+ *
+ * @package earc/event-tree
+ * @link https://github.com/Koudela/earc-eventTree/
+ * @copyright Copyright (c) 2018 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
-namespace eArc\eventTree\Event;
+namespace eArc\EventTree\Event;
 
-use eArc\eventTree\Interfaces\PropagationType;
-use eArc\eventTree\Traits\EventHeritable;
-use eArc\eventTree\Traits\PropagatableHandler;
-use eArc\eventTree\Tree\ObserverTree;
-use eArc\eventTree\Interfaces\EventInheritanceHandler;
-use eArc\eventTree\Interfaces\PropagationHandler;
-use eArc\eventTree\Traits\PropagatableType;
+use eArc\EventTree\Api\Interfaces\EventFactoryInterface;
+use eArc\EventTree\Transformation\EventFactory;
+use eArc\EventTree\Tree\ObserverRoot;
+use Psr\Container\ContainerInterface;
 
-class Event extends PayloadContainer implements PropagationType, PropagationHandler, EventInheritanceHandler
+/**
+ *
+ */
+class Event extends PropagatableEventHandler
 {
-    use PropagatableType;
-    use PropagatableHandler;
-    use EventHeritable;
-
-    protected $eventDispatcherFactory;
 
     public function __construct(
-        Event $parent,
-        ObserverTree $tree,
+        ?Event $parent = null,
+        ?ObserverRoot $tree = null,
         array $start = [],
         array $destination = [],
-        ?int $maxDepth = null,
-        bool $inheritPayload = false
+        ?int $maxDepth = 0,
+        bool $inheritPayload = false,
+        ?ContainerInterface $container = null
     ) {
-        parent::__construct($parent->container);
-        $this->tree = $tree;
-        $this->start = $start;
-        $this->destination = $destination;
-        $this->maxDepth = $maxDepth;
-        $this->parent = $parent;
-        $this->parent->addChild($this);
-        if ($inheritPayload) {
-            $this->payload = $parent->getPayload();
-        }
-        $this->eventDispatcherFactory = $parent->getEventDispatcherFactory();
+        parent::__construct(
+            $parent,
+            $tree,
+            $start,
+            $destination,
+            $maxDepth,
+            $inheritPayload,
+            $container
+        );
     }
 
-    public function getEventDispatcherFactory(): EventDispatcherFactory
+    public function getEventFactoryFromRoot(): EventFactory
     {
-        return $this->eventDispatcherFactory;
+        return new EventFactory($this->getRoot());
     }
 
-    public function new()
+    public function getEventFactory(): EventFactory
     {
-        return $this->eventDispatcherFactory->build();
+        return new EventFactory($this);
     }
 
-    public function clone()
-    {
-        return $this->eventDispatcherFactory->build($this);
-    }
-
-    public function __clone()
-    {
-        throw new \BadMethodCallException();
-    }
 }

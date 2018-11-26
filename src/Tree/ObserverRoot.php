@@ -8,11 +8,15 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\EventTree\Tree;
 
 /**
- * Gets thrown if a payload slot of the event is overwritten unintentionally.
+ * This is the root instance of the composite.
  */
-class PayloadOverwriteException extends \RuntimeException
+class ObserverRoot extends Observer
 {
+    public function __construct(string $name)
+    {
+        parent::__construct(null, $name);
+    }
 }

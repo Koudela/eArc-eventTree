@@ -11,8 +11,8 @@
 namespace eArc\EventTree\Exceptions;
 
 /**
- * Gets thrown if a payload slot of the event is overwritten unintentionally.
+ * Gets thrown if an event is build with an invalid destination.
  */
-class PayloadOverwriteException extends \RuntimeException
+class InvalidDestinationNodeException extends \RuntimeException
 {
 }

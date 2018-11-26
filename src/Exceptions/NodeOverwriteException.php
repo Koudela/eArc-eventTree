@@ -11,8 +11,9 @@
 namespace eArc\EventTree\Exceptions;
 
 /**
- * Gets thrown if a payload slot of the event is overwritten unintentionally.
+ * Gets thrown if a node is added to a parent where the same child node name
+ * already exists.
  */
-class PayloadOverwriteException extends \RuntimeException
+class NodeOverwriteException extends \RuntimeException
 {
 }

@@ -2,13 +2,14 @@
 
 namespace eArc\eventTree\Transformation;
 
-use eArc\eventTree\Exceptions\InvalidObserverTreeNameException;
-use eArc\eventTree\Interfaces\EventListener;
-use eArc\eventTree\Tree\EventRouter;
-use eArc\eventTree\Tree\ObserverLeaf;
-use eArc\eventTree\Tree\ObserverTree;
+use eArc\EventTree\Api\Interfaces\ObserverTreeFactoryInterface;
+use eArc\EventTree\Exceptions\InvalidObserverTreeNameException;
+use eArc\EventTree\Api\Interfaces\EventListenerInterface;
+use eArc\EventTree\Tree\EventRouter;
+use eArc\EventTree\Tree\Observer;
+use eArc\EventTree\Tree\ObserverRoot;
 
-class ObserverTreeFactory
+class ObserverTreeFactory implements ObserverTreeFactoryInterface
 {
     protected $trees = [];
     protected $definitionPointer;
@@ -30,7 +31,7 @@ class ObserverTreeFactory
         $this->ignores = $ignores;
     }
 
-    public function get(string $treeName): ObserverTree
+    public function get(string $treeName): ObserverRoot
     {
         if (!isset($this->trees[$treeName]))
         {
@@ -47,9 +48,9 @@ class ObserverTreeFactory
         return $this->trees[$treeName];
     }
 
-    protected function buildTree(string $treeName): ObserverTree
+    protected function buildTree(string $treeName): Observer
     {
-        $tree = new ObserverTree($treeName);
+        $tree = new Observer($treeName);
 
         foreach($this->definitionPointer as list($rootDir, $rootNamespace))
         {
@@ -64,7 +65,7 @@ class ObserverTreeFactory
         return $tree;
     }
 
-    protected function processDir(string $namespace, string $leafName, ObserverLeaf $leaf): void
+    protected function processDir(string $namespace, string $leafName, Observer $leaf): void
     {
         chdir($leafName);
         $namespace .= '\\' . $leafName;
@@ -77,10 +78,12 @@ class ObserverTreeFactory
 
             if (is_dir($fileName))
             {
+                /** @var Observer $child */
+                $child = $leaf->addChild($fileName);
                 $this->processDir(
                     $namespace,
                     $fileName,
-                    $leaf->addChild($fileName)
+                    $child
                 );
                 chdir('..');
                 continue;
@@ -93,7 +96,7 @@ class ObserverTreeFactory
                 continue;
             }
 
-            if (is_subclass_of($className, EventListener::class))
+            if (is_subclass_of($className, EventListenerInterface::class))
             {
                 /** @noinspection PhpUndefinedFieldInspection */
                 $patience = defined($className . '::EARC_LISTENER_PATIENCE')

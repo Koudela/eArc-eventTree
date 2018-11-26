@@ -1,8 +1,21 @@
 <?php
+/**
+ * e-Arc Framework - the explicit Architecture Framework
+ *
+ * @package earc/event-tree
+ * @link https://github.com/Koudela/earc-eventTree/
+ * @copyright Copyright (c) 2018 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
-namespace eArc\eventTree\Traits;
+namespace eArc\EventTree\Event;
 
-trait PropagatableHandler
+use eArc\EventTree\Tree\EventRouter;
+
+/**
+ * Defines an propagatable event handler.
+ */
+class PropagatableEventHandler extends PropagatableEventType
 {
     protected $isSilenced = false;
     protected $isTerminated = false;
@@ -53,5 +66,10 @@ trait PropagatableHandler
     {
         $this->terminate();
         $this->tie();
+    }
+
+    public function dispatch(): void
+    {
+        (new EventRouter($this))->dispatchEvent();
     }
 }

@@ -1,14 +1,13 @@
 <?php
 
-namespace eArc\eventTree\Event;
+namespace eArc\EventTree\Transformation;
 
-use eArc\eventTree\Transformation\ObserverTreeFactory;
-use eArc\eventTree\Tree\EventRouter;
-use eArc\eventTree\Tree\ObserverTree;
+use eArc\EventTree\Api\Interfaces\EventFactoryInterface;
+use eArc\EventTree\Event\Event;
+use eArc\EventTree\Tree\ObserverRoot;
 
-class EventDispatcher
+class EventFactory implements EventFactoryInterface
 {
-    protected $treeFactory;
     protected $parentOfNewEvent;
     protected $tree;
     protected $start;
@@ -17,9 +16,8 @@ class EventDispatcher
     protected $inheritPayload = false;
     protected $payload = [];
 
-    public function __construct(ObserverTreeFactory $treeFactory, Event $event)
+    public function __construct(Event $event)
     {
-        $this->treeFactory = $treeFactory;
         $this->parentOfNewEvent = $event;
         $this->tree = $event->getTree();
         $this->start = $event->getStart();
@@ -27,47 +25,48 @@ class EventDispatcher
         $this->maxDepth = $event->getMaxDepth();
     }
 
-    public function tree(string $eventTreeName): EventDispatcher
+    public function tree(ObserverRoot $observerTree): EventFactoryInterface
     {
-        $this->tree = $this->treeFactory->get($eventTreeName);
+        $this->tree = $observerTree;
         return $this;
     }
 
-    public function start(array $start = array()): EventDispatcher
+    public function start(array $start = array()): EventFactoryInterface
     {
         $this->start = $start;
         return $this;
     }
 
-    public function destination(array $destination = array()): EventDispatcher
+    public function destination(array $destination = array()): EventFactoryInterface
     {
         $this->destination = $destination;
         return $this;
     }
 
-    public function maxDepth(?int $maxDepth = null): EventDispatcher
+    public function maxDepth(?int $maxDepth = null): EventFactoryInterface
     {
         $this->maxDepth = $maxDepth;
         return $this;
     }
 
-    public function inheritPayload(bool $inheritPayload = true): EventDispatcher
+    public function inheritPayload(bool $inheritPayload = true): EventFactoryInterface
     {
         $this->inheritPayload = $inheritPayload;
         return $this;
     }
 
-    public function addPayload(string $key, $payload)
+    public function addPayload(string $key, $payload): EventFactoryInterface
     {
         $this->payload[$key] = $payload;
+        return $this;
     }
 
-    public function dispatch(?ObserverTree $observerTree = null)
+    public function build(): Event
     {
-        if (!$observerTree && !$this->tree instanceof ObserverTree)
+        if (!$this->tree instanceof ObserverRoot)
         {
             throw new \InvalidArgumentException(
-                'On using the root event as parent, selecting an observer tree is mandatory.'
+                'On using a root event as parent, selecting an observer tree is mandatory.'
             );
         }
 
@@ -85,6 +84,6 @@ class EventDispatcher
             $event->setPayload($key, $payload);
         }
 
-        (new EventRouter($event))->dispatchEvent();
+        return $event;
     }
 }
