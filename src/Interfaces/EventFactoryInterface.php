@@ -8,12 +8,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Api\Interfaces;
+namespace eArc\EventTree\Interfaces;
 
-use eArc\eventTree\Event\Event;
+use eArc\eventTree\Event;
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
 use eArc\EventTree\Exceptions\InvalidStartNodeException;
-use eArc\EventTree\Tree\ObserverRoot;
+use eArc\PayloadContainer\Exceptions\PayloadOverwriteException;
+use eArc\ObserverTree\Observer;
 
 /**
  * Interface for factories building events.
@@ -23,11 +24,11 @@ interface EventFactoryInterface
     /**
      * Set the ObserverTree the event traverses.
      *
-     * @param ObserverRoot $observerTree
+     * @param Observer $observerTree
      *
      * @return EventFactoryInterface
      */
-    public function tree(ObserverRoot $observerTree): EventFactoryInterface;
+    public function tree(Observer $observerTree): EventFactoryInterface;
 
     /**
      * Set the starting node for the event.
@@ -71,16 +72,16 @@ interface EventFactoryInterface
      *
      * @param string $key
      * @param $payload
+     * @param bool $overwrite
      *
      * @return EventFactoryInterface
      */
-    public function addPayload(string $key, $payload): EventFactoryInterface;
+    public function addPayload(string $key, $payload, $overwrite = false): EventFactoryInterface;
 
     /**
-     * Builds the event. The ObserverTree, maxDepth, starting and destination
+     * Builds the event. The observer tree, maxDepth, starting and destination
      * node are inherit by the parent if not set. If inheritPayload is not set
-     * to true the event starts with a new payload. The container of the parent
-     * is always inherited by the child.
+     * to true the event starts with a new payload.
      *
      * @return Event
      *
@@ -88,6 +89,8 @@ interface EventFactoryInterface
      * tree.
      * @throws InvalidDestinationNodeException The destination node does not
      * exist on the tree.
+     * @throws PayloadOverwriteException The inherited Payload has the an item
+     * of the same name as added by addPayload and overwrite was set to false.
      */
     public function build(): Event;
 }
