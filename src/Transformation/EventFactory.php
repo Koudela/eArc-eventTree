@@ -1,87 +1,128 @@
 <?php
+/**
+ * e-Arc Framework - the explicit Architecture Framework
+ *
+ * @package earc/event-tree
+ * @link https://github.com/Koudela/earc-eventTree/
+ * @copyright Copyright (c) 2018 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
 namespace eArc\EventTree\Transformation;
 
-use eArc\EventTree\Api\Interfaces\EventFactoryInterface;
-use eArc\EventTree\Event\Event;
-use eArc\EventTree\Tree\ObserverRoot;
+use eArc\EventTree\Type;
+use eArc\EventTree\Interfaces\EventFactoryInterface;
+use eArc\EventTree\Event;
+use eArc\ObserverTree\Observer;
 
+/**
+ * The event factory simplifies the creation of an event. Only root events shall
+ * be build without the factory.
+ */
 class EventFactory implements EventFactoryInterface
 {
-    protected $parentOfNewEvent;
+    /** @var Event */
+    protected $parent;
+
+    /** @var Observer|null  */
     protected $tree;
+
+    /** @var array|null */
     protected $start;
+
+    /** @var array|null */
     protected $destination;
-    protected $maxDepth;
+
+    /** @var int|null */
+    protected $maxDepth = -1;
+
+    /** @var bool */
     protected $inheritPayload = false;
+
+    /** @var array */
     protected $payload = [];
 
+    /**
+     * @param Event $event
+     */
     public function __construct(Event $event)
     {
-        $this->parentOfNewEvent = $event;
-        $this->tree = $event->getTree();
-        $this->start = $event->getStart();
-        $this->destination = $event->getDestination();
-        $this->maxDepth = $event->getMaxDepth();
+        $this->parent = $event;
     }
 
-    public function tree(ObserverRoot $observerTree): EventFactoryInterface
+    /**
+     * @inheritdoc
+     */
+    public function tree(Observer $observerTree): EventFactoryInterface
     {
         $this->tree = $observerTree;
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function start(array $start = array()): EventFactoryInterface
     {
         $this->start = $start;
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function destination(array $destination = array()): EventFactoryInterface
     {
         $this->destination = $destination;
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function maxDepth(?int $maxDepth = null): EventFactoryInterface
     {
         $this->maxDepth = $maxDepth;
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function inheritPayload(bool $inheritPayload = true): EventFactoryInterface
     {
         $this->inheritPayload = $inheritPayload;
         return $this;
     }
 
-    public function addPayload(string $key, $payload): EventFactoryInterface
+    /**
+     * @inheritdoc
+     */
+    public function addPayload(string $name, $payload, $overwrite = false): EventFactoryInterface
     {
-        $this->payload[$key] = $payload;
+        $this->payload[$name] = [$payload, $overwrite];
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function build(): Event
     {
-        if (!$this->tree instanceof ObserverRoot)
-        {
-            throw new \InvalidArgumentException(
-                'On using a root event as parent, selecting an observer tree is mandatory.'
-            );
-        }
-
         $event = new Event(
-            $this->parentOfNewEvent,
-            $this->tree,
-            $this->start,
-            $this->destination,
-            $this->maxDepth,
+            $this->parent,
+            new Type(
+                $this->tree ?? $this->parent->getType()->getTree(),
+                $this->start ?? $this->parent->getType()->getStart(),
+                $this->destination ?? $this->parent->getType()->getDestination(),
+                $this->maxDepth !== -1 ? $this->maxDepth : $this->parent->getType()->getMaxDepth()
+            ),
             $this->inheritPayload
         );
 
-        foreach ($this->payload as $key => $payload)
+        foreach ($this->payload as $name => $payload)
         {
-            $event->setPayload($key, $payload);
+            $event->getPayload()->set($name, $payload[0], $payload[1]);
         }
 
         return $event;

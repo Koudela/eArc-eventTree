@@ -15,5 +15,4 @@ namespace eArc\EventTree\Exceptions;
  */
 class InvalidStartNodeException extends \RuntimeException
 {
-
 }

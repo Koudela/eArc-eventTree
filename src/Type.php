@@ -8,20 +8,18 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Event;
+namespace eArc\EventTree;
 
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
 use eArc\EventTree\Exceptions\InvalidStartNodeException;
-use eArc\EventTree\Tree\Observer;
-use eArc\EventTree\Tree\ObserverRoot;
-use Psr\Container\ContainerInterface;
+use eArc\ObserverTree\Observer;
 
 /**
- * Defines an immutable propagatable event type by four properties.
+ * Defines an immutable four dimensional event type.
  */
-class PropagatableEventType extends PayloadContainer
+class Type
 {
-    /** @var ObserverRoot */
+    /** @var Observer */
     protected $tree;
 
     /** @var array */
@@ -40,55 +38,40 @@ class PropagatableEventType extends PayloadContainer
     protected $destinationNode;
 
     /**
-     * @param PropagatableEventType|null $parent
-     * @param ObserverRoot|null $tree
-     * @param array $start
-     * @param array $destination
-     * @param int|null $maxDepth
-     * @param bool $inheritPayload
-     * @param null|ContainerInterface $container
+     * @param Observer $tree
+     * @param array         $start
+     * @param array         $destination
+     * @param int|null      $maxDepth
      *
      * @throws InvalidStartNodeException
      * @throws InvalidDestinationNodeException
      */
     public function __construct(
-        ?PropagatableEventType $parent = null,
-        ObserverRoot $tree = null,
+        Observer $tree,
         array $start = [],
         array $destination = [],
-        ?int $maxDepth = 0,
-        bool $inheritPayload = false,
-        ?ContainerInterface $container = null
+        ?int $maxDepth = 0
     ) {
         $this->tree = $tree;
         $this->start = $start;
         $this->destination = $destination;
         $this->maxDepth = $maxDepth;
-        $this->startNode = $this->tree;
-        foreach ($start as $name) {
-            try {
-                $this->startNode = $this->startNode->getChild($name);
-            } catch (\Exception $exception) {
-                throw new InvalidStartNodeException();
-            }
+
+        if (!$this->startNode = $tree->getPathChild($start)) {
+            throw new InvalidStartNodeException();
         }
-        $this->destinationNode = $this->startNode;
-        foreach ($destination as $name) {
-            try {
-                $this->destinationNode = $this->destinationNode->getChild($name);
-            } catch (\Exception $exception) {
-                throw new InvalidStartNodeException();
-            }
+
+        if (!$this->destinationNode = $this->startNode->getPathChild($destination)) {
+            throw new InvalidDestinationNodeException();
         }
-        parent::__construct($parent, $inheritPayload, $container);
     }
 
     /**
      * Get the observer tree the event uses.
      *
-     * @return ObserverRoot|null
+     * @return Observer|null
      */
-    public function getTree(): ?ObserverRoot
+    public function getTree(): ?Observer
     {
         return $this->tree;
     }

@@ -10,9 +10,14 @@
             "email": "thomas@koudela.net"
         }
     ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "psr/container": "^1.0"
+        "psr/container": "^1.0",
+        "earc/tree": "dev-master",
+        "earc/observer-tree": "dev-master",
+        "earc/payload-container": "dev-master"
     },
     "autoload": {
         "psr-4" : {

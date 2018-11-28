@@ -8,11 +8,18 @@
 * @license http://opensource.org/licenses/MIT MIT License
 */
 
-namespace eArc\EventTree\Tree;
+namespace eArc\EventTree\Propagation;
 
-use eArc\eventTree\Event\Event;
-use eArc\EventTree\Event\PropagatableEventHandler;
+use eArc\eventTree\Event;
+use eArc\EventTree\Handler;
+use eArc\ObserverTree\Observer;
+use Psr\Container\ContainerInterface;
 
+/**
+ * Handles the traveling of the event and the observer calls. (Users of this
+ * library must not care about this class. Direct interaction with this class
+ * is advised against strongly.)
+ */
 class EventRouter
 {
     const PHASE_START = 1;
@@ -21,189 +28,201 @@ class EventRouter
     const PHASE_BEYOND = 8;
     const PHASE_ACCESS = 15;
 
+    /* may change in each layer: */
+
+    /** @var int */
     protected $eventPhase;
-    protected $currentLeaf;
-    protected $event;
+
+    /* changes in each layer: */
+
+    /** @var int */
     protected $depth;
-    protected $path;
+
+    /** @var int */
+    protected $nodesInLayerCnt;
+
+    /** @var array */
     protected $currentChildren;
+
+    /* changes between observer visits: */
+
+    /** @var int */
+    protected $state;
+
+    /** @var int */
     protected $nthChild;
 
-    public function __construct(PropagatableEventHandler $event)
+    /* can not change */
+
+    /** @var int|null */
+    protected $maxDepth;
+
+    /** @var array */
+    protected $path;
+
+    /** @var Event */
+    protected $event;
+
+    /**
+     * @param Event $event
+     */
+    public function __construct(Event $event)
     {
-        $this->currentLeaf = $event->getTree();
         $this->event = $event;
-    }
-
-    public function matchesEventPhase(int $eventPhaseBitMask): bool
-    {
-        return (0 !== ($eventPhaseBitMask & $this->eventPhase));
-    }
-
-    protected function setEventPhase(): void
-    {
-        $this->nthChild = 0;
-        $cnt = count($this->event->getDestination());
-
-        if (0 === $this->depth)
-        {
-            $this->eventPhase = self::PHASE_START;
-        }
-        elseif ($cnt > $this->depth)
-        {
-            $this->eventPhase = self::PHASE_BEFORE;
-        }
-        elseif ($cnt === $this->depth)
-        {
-            $this->eventPhase = self::PHASE_DESTINATION;
-        }
-        elseif ($cnt < $this->depth)
-        {
-            $this->eventPhase = self::PHASE_BEYOND;
-        }
-    }
-
-    public function getEvent(): Event
-    {
-        return $this->event;
-    }
-
-    public function dispatchEvent(): void
-    {
-        if ($this->event->isTerminated()
-            || $this->currentLeaf !== $this->currentLeaf->getRoot()
-        ) {
-            return;
-        }
-
-        if ($this->event->isSilenced())
-        {
-            $this->event->endSilence();
-        }
-
-        $this->currentLeaf = $this->currentLeaf->getRoot();
-
-        foreach ($this->event->getStart() as $name)
-        {
-            $this->currentLeaf->getChild($name);
-        }
-
-        $this->depth = 0;
-
-        $this->path = $this->event->getDestination();
-
-        $this->currentChildren = [$this->currentLeaf];
-
-        $this->setEventPhase();
-
-        $this->currentLeaf->callListeners($this->event, $this->eventPhase);
-
-        $this->nextLeaf();
-    }
-
-    public function nextLeaf(): void
-    {
-        if ($this->event->isTied())
-        {
-            $this->currentChildren = [$this->currentLeaf];
-
-            $this->setEventPhase();
-        }
-
-        if ($this->event->isTerminated())
-        {
-            unset($this->currentChildren[$this->nthChild]);
-        }
-
-        if (empty($this->currentChildren))
-        {
-            return;
-        }
-
-        $this->event->reanimate();
-
-        if (null !== $this->event->getMaxDepth()
-            && $this->depth >= $this->event->getMaxDepth()
-        ) {
-            return;
-        }
-
-        if (++$this->nthChild >= count($this->currentChildren) || 0 === $this->depth)
-        {
-            $this->currentChildren = $this->getNextChildren();
-
-            $this->depth++;
-
-            if (empty($this->currentChildren))
-            {
-                return;
-            }
-
-            $this->setEventPhase();
-        }
-
-        $this->currentChildren[$this->nthChild]->callListeners($this->event, $this->eventPhase);
-
-        $this->nextLeaf();
-    }
-
-    protected function getNextChildren(): array
-    {
-        if (isset($this->path[$this->depth]))
-        {
-            if ($this->event->isTerminated())
-            {
-                return [];
-            }
-
-            return [$this->currentLeaf->getChild($this->path[$this->depth])];
-        }
-
-        $children = [];
-
-        foreach ($this->currentChildren as $child)
-        {
-            /* @var ObserverLeaf $child */
-            foreach ($child->getChildren() as $newChild)
-            {
-                array_push($children, $newChild);
-            }
-        }
-
-        return $children;
+        $this->maxDepth = $event->getType()->getMaxDepth();
+        $this->path = $this->event->getType()->getDestination();
     }
 
     /**
-     * Transforms the eventPhases to a string representation.
-     *
-     * @param int $eventPhases
-     *
-     * @return string
+     * Start the propagation of the event.
      */
-    public static function eventPhasesToString(int $eventPhases): string
+    public function dispatchEvent(): void
     {
-        if (EventRouter::PHASE_ACCESS === $eventPhases) {
-            return 'access';
+        $this->event->getHandler()->transferState($this);
+        $this->state = 0;
+
+        $this->currentChildren = [$this->event->getType()->getStartNode()];
+        $this->nodesInLayerCnt = 1;
+        $this->nthChild = 0;
+        $this->depth = 0;
+
+        $this->eventPhase = self::PHASE_START;
+
+        $this->visitObserver($this->currentChildren[$this->nthChild]);
+
+        $this->nextNode();
+    }
+
+    /**
+     * Calculates the travel to the next observer.
+     */
+    protected function nextNode(): void
+    {
+        if (0 !== $this->state & Handler::EVENT_IS_TIED) {
+            if (0 !== $this->state & Handler::EVENT_IS_TERMINATED) {
+                return;
+            }
+            $this->currentChildren = [$this->currentChildren[$this->nthChild]];
         }
 
-        $arr = [];
-
-        if (EventRouter::PHASE_START & $eventPhases) {
-            $arr[] = 'start';
+        if (0 !== $this->state & Handler::EVENT_IS_TERMINATED) {
+            unset($this->currentChildren[$this->nthChild]);
+            if (empty($this->currentChildren)) {
+                return;
+            }
         }
 
-        if (EventRouter::PHASE_BEFORE & $eventPhases) {
-            $arr[] = 'before';
+        ++$this->nthChild;
+
+        $this->state = 0;
+
+        if ($this->nthChild >= $this->nodesInLayerCnt || count($this->currentChildren) === 1) {
+            ++$this->depth;
+
+            if ($this->isBeyondMaxDepth()) {
+                return;
+            }
+
+            $this->currentChildren = $this->getNextNodeLayer();
+
+            if (empty($this->currentChildren)) {
+                return;
+            }
         }
 
-        if (EventRouter::PHASE_DESTINATION & $eventPhases) {
-            $arr[] = 'destination';
+        $this->visitObserver($this->currentChildren[$this->nthChild]);
+
+        $this->nextNode();
+    }
+
+    /**
+     * Whether the maximal depth is reached.
+     *
+     * @return bool
+     */
+    protected function isBeyondMaxDepth(): bool
+    {
+        return null !== $this->maxDepth && $this->depth >= $this->maxDepth;
+    }
+
+    /**
+     * Get all observer nodes that are visited in the next layer.
+     *
+     * @return array
+     */
+    protected function getNextNodeLayer(): array
+    {
+        $cnt = count($this->path);
+        $this->nthChild = 0;
+
+        if ($cnt > $this->depth) {
+            $this->eventPhase = self::PHASE_BEYOND;
+
+            $children = [];
+
+            foreach ($this->currentChildren as $child)
+            {
+                /* @var Observer $child */
+                foreach ($child->getChildren() as $newChild) {
+                    $children[] = $newChild;
+                }
+            }
+
+            $this->nodesInLayerCnt = count($children);
+
+            return $children;
         }
 
-        if (EventRouter::PHASE_BEYOND & $eventPhases) {
-            $arr[] = 'beyond';
-        }
+        $this->nodesInLayerCnt = 1;
 
-        return implode(' | ', $arr);
+        $this->eventPhase = $cnt < $this->depth ? self::PHASE_BEFORE : self::PHASE_DESTINATION;
+
+        return [$this->currentChildren[0]->getChild($this->path[$this->depth -1])];
+    }
+
+    /**
+     * Get the container if attached as 'container' to the root payload or null
+     * otherwise.
+     *
+     * @return mixed|null
+     */
+    protected function getContainer(): ?ContainerInterface
+    {
+        /** @var Event $rootEvent */
+        $rootEvent = $this->event->getRoot();
+
+        return $rootEvent->getPayload()->has('container') ? $rootEvent->get('container') : null;
+    }
+
+    /**
+     * Defines how the observer calls the listener.
+     *
+     * @param Observer $observer
+     */
+    protected function visitObserver(Observer $observer): void
+    {
+        $eventRouter = $this;
+
+        $observer->callListeners(
+            $this->event,
+            $this->eventPhase,
+            function() use ($eventRouter) {
+                $state = $eventRouter->event->getHandler()->transferState($eventRouter);
+                return 0 !== $state & Handler::EVENT_IS_SILENCED ? Observer::CALL_LISTENER_BREAK : null;
+            },
+            $this->getContainer()
+        );
+
+        $this->event->getHandler()->transferState($this);
+    }
+
+    /**
+     * Set additional state. Is called by Event::transferState().
+     *
+     * @param int $state
+     */
+    public function setState(int $state): void
+    {
+        $this->state = $this->state | $state;
     }
 }
