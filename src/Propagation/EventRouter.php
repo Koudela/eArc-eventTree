@@ -210,6 +210,8 @@ class EventRouter
                 $state = $eventRouter->event->getHandler()->transferState($eventRouter);
                 return 0 !== $state & Handler::EVENT_IS_SILENCED ? Observer::CALL_LISTENER_BREAK : null;
             },
+            null,
+            null,
             $this->getContainer()
         );
 
