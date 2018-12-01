@@ -20,4 +20,11 @@ interface EventRouterInterface
      * Start the propagation of the event.
      */
     public function dispatchEvent(): void;
+
+    /**
+     * Set additional state. Is called by Event::transferState().
+     *
+     * @param int $state
+     */
+    public function setState(int $state): void;
 }
