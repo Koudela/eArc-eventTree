@@ -10,7 +10,7 @@
 
 namespace eArc\EventTree;
 
-use eArc\EventTree\Propagation\EventRouter;
+use eArc\EventTree\Interfaces\EventRouterInterface;
 
 /**
  * Defines a three dimensional boolean state the event is in.
@@ -64,11 +64,11 @@ class Handler
     /**
      * Moves the state from the event handler to the event router
      *
-     * @param EventRouter $eventRouter
+     * @param EventRouterInterface $eventRouter
      *
      * @return int
      */
-    public function transferState(EventRouter $eventRouter): int
+    public function transferState(EventRouterInterface $eventRouter): int
     {
         $state = $this->state;
         $this->state = 0;
