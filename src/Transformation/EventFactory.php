@@ -42,6 +42,12 @@ class EventFactory implements EventFactoryInterface
     /** @var array */
     protected $payload = [];
 
+    /** @var string */
+    protected $routerClass = null;
+
+    /** @var string */
+    protected $factoryClass = null;
+
     /**
      * @param Event $event
      */
@@ -107,6 +113,24 @@ class EventFactory implements EventFactoryInterface
     /**
      * @inheritdoc
      */
+    public function setRouter(string $eventRouter): EventFactoryInterface
+    {
+        $this->routerClass = $eventRouter;
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setFactory(string $eventFactory): EventFactoryInterface
+    {
+        $this->factoryClass = $eventFactory;
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function build(): Event
     {
         $event = new Event(
@@ -117,7 +141,9 @@ class EventFactory implements EventFactoryInterface
                 $this->destination ?? $this->parent->getType()->getDestination(),
                 $this->maxDepth !== -1 ? $this->maxDepth : $this->parent->getType()->getMaxDepth()
             ),
-            $this->inheritPayload
+            $this->inheritPayload,
+            $this->routerClass,
+            $this->factoryClass
         );
 
         foreach ($this->payload as $name => $payload)

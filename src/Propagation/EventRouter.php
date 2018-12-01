@@ -12,6 +12,7 @@ namespace eArc\EventTree\Propagation;
 
 use eArc\eventTree\Event;
 use eArc\EventTree\Handler;
+use eArc\EventTree\Interfaces\EventRouterInterface;
 use eArc\ObserverTree\Observer;
 use Psr\Container\ContainerInterface;
 
@@ -20,7 +21,7 @@ use Psr\Container\ContainerInterface;
  * library must not care about this class. Direct interaction with this class
  * is advised against strongly.)
  */
-class EventRouter
+class EventRouter implements EventRouterInterface
 {
     const PHASE_START = 1;
     const PHASE_BEFORE = 2;
