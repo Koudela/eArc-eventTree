@@ -79,6 +79,24 @@ interface EventFactoryInterface
     public function addPayload(string $key, $payload, $overwrite = false): EventFactoryInterface;
 
     /**
+     * Dispatches the event with a new event router class.
+     *
+     * @param string $eventRouter
+     *
+     * @return EventFactoryInterface
+     */
+    public function setRouter(string $eventRouter): EventFactoryInterface;
+
+    /**
+     * Builds the event with a new referenced event factory class.
+     *
+     * @param string $eventFactory
+     *
+     * @return EventFactoryInterface
+     */
+    public function setFactory(string $eventFactory): EventFactoryInterface;
+
+    /**
      * Builds the event. The observer tree, maxDepth, starting and destination
      * node are inherit by the parent if not set. If inheritPayload is not set
      * to true the event starts with a new payload.

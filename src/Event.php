@@ -10,6 +10,8 @@
 
 namespace eArc\EventTree;
 
+use eArc\EventTree\Interfaces\EventFactoryInterface;
+use eArc\EventTree\Interfaces\EventRouterInterface;
 use eArc\EventTree\Transformation\EventFactory;
 use eArc\EventTree\Propagation\EventRouter;
 use eArc\PayloadContainer\PayloadContainer;
@@ -29,16 +31,25 @@ class Event extends Node
     /** @var Type */
     protected $type;
 
+    /** @var string */
+    protected $eventRouter;
+
+    /** @var string */
+    protected $eventFactory;
 
     /**
      * @param Event|null $parent
      * @param Type|null $type
      * @param bool $inheritPayload
+     * @param string|null $eventRouterClass
+     * @param string|null $eventFactoryClass
      */
     public function __construct(
         ?Event $parent = null,
         ?Type  $type = null,
-        bool $inheritPayload = false
+        bool $inheritPayload = false,
+        string $eventRouterClass = null,
+        string $eventFactoryClass = null
     ) {
         $this->type = $type;
         $this->payload = $inheritPayload ? $parent->getPayload() : new PayloadContainer();
@@ -46,8 +57,17 @@ class Event extends Node
         parent::__construct($parent);
 
         if ($parent) {
+            if (!$eventRouterClass) {
+                $eventRouterClass = $parent->getEventRouterClass();
+            }
+            if (!$eventFactoryClass) {
+                $eventFactoryClass = $parent->getEventFactoryClass();
+            }
             $this->state = new Handler();
         }
+
+        $this->eventRouter = $eventRouterClass ?? EventRouter::class;
+        $this->eventFactory = $eventFactoryClass ?? EventFactory::class;
     }
 
     /**
@@ -105,12 +125,17 @@ class Event extends Node
      */
     public function dispatch(): void
     {
-        if ($this === $this->getRoot())
-        {
+        if ($this === $this->getRoot()) {
             throw new \BadMethodCallException("A root event can not be dispatched!");
         }
 
-        (new EventRouter($this))->dispatchEvent();
+        $eventRouter = new $this->eventRouter($this);
+
+        if (!$eventRouter instanceof EventRouterInterface) {
+            throw new \RuntimeException('`'.$this->eventRouter.'` implements not the EventRouterInterface.');
+        }
+
+        $eventRouter->dispatchEvent();
     }
 
     /**
@@ -118,9 +143,9 @@ class Event extends Node
      *
      * @return EventFactory
      */
-    public function getEventFactory(): EventFactory
+    public function getEventFactory(): EventFactoryInterface
     {
-        return new EventFactory($this);
+        return new $this->eventFactory($this);
     }
 
     /**
@@ -128,11 +153,31 @@ class Event extends Node
      *
      * @return EventFactory
      */
-    public function getEventFactoryFromRoot(): EventFactory
+    public function getEventFactoryFromRoot(): EventFactoryInterface
     {
         /** @var Event $root */
         $root = $this->getRoot();
 
         return $root->getEventFactory();
+    }
+
+    /**
+     * Get the referenced event router class.
+     *
+     * @return string
+     */
+    public function getEventRouterClass(): string
+    {
+        return $this->eventRouter;
+    }
+
+    /**
+     * Get the referenced event factory class.
+     *
+     * @return string
+     */
+    public function getEventFactoryClass(): string
+    {
+        return $this->eventFactory;
     }
 }
