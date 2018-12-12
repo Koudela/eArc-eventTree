@@ -14,6 +14,7 @@ use eArc\EventTree\Interfaces\EventFactoryInterface;
 use eArc\EventTree\Interfaces\EventRouterInterface;
 use eArc\EventTree\Transformation\EventFactory;
 use eArc\EventTree\Propagation\EventRouter;
+use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
 use eArc\PayloadContainer\PayloadContainer;
 use eArc\Tree\Node;
 
@@ -91,11 +92,28 @@ class Event extends Node
     }
 
     /**
+     * Checks whether a specific payload item of the root event exists.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function has(string $name)
+    {
+        /** @var Event $root */
+        $root = $this->getRoot();
+
+        return $root->getPayload()->has($name);
+    }
+
+    /**
      * Get a specific payload item of the root event.
      *
      * @param string $name
      *
      * @return mixed
+     *
+     * @throws ItemNotFoundException
      */
     public function get(string $name)
     {
