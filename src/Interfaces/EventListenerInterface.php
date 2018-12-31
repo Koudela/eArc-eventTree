@@ -11,6 +11,7 @@
 namespace eArc\EventTree\Interfaces;
 
 use eArc\EventTree\Event;
+use eArc\ObserverTree\Interfaces\EventListenerFactoryInterface;
 
 /**
  * Interface a class must implement to become an EventListener.
@@ -20,7 +21,7 @@ use eArc\EventTree\Event;
  * \eArc\ObserverTree\Interfaces\EventListenerInterface for re-usability
  * reasons.
  */
-interface EventListenerInterface
+interface EventListenerInterface extends EventListenerFactoryInterface
 {
     /**
      * Method which is called by the Observer the EventListener is attached to.
