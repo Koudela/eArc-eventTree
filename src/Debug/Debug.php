@@ -117,10 +117,10 @@ abstract class Debug
         $ref = new \ReflectionClass($observer);
         $propertyListener = $ref->getProperty('listener');
         $propertyListener->setAccessible(true);
-        $listener = $propertyListener->getValue();
+        $listener = $propertyListener->getValue($observer);
         $propertyType = $ref->getProperty('type');
         $propertyType->setAccessible(true);
-        $type = $propertyType->getValue();
+        $type = $propertyType->getValue($observer);
 
         $str = '';
 
