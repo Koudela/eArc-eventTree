@@ -22,7 +22,6 @@ use eArc\ObserverTree\Observer;
  */
 abstract class Debug
 {
-
     /**
      * Transforms the tree of events to a string.
      *
@@ -81,7 +80,14 @@ abstract class Debug
     }
 
 
-
+    /**
+     * @param Observer $observer
+     * @param string $indent
+     *
+     * @return string
+     *
+     * @throws \ReflectionException
+     */
     public static function treeToString(Observer $observer, $indent = ''): string
     {
         $str = $indent . "--{$observer->getName()}--\n";

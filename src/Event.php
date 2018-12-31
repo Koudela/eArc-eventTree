@@ -53,7 +53,8 @@ class Event extends Node
         string $eventFactoryClass = null
     ) {
         $this->type = $type;
-        $this->payload = $inheritPayload ? $parent->getPayload() : new PayloadContainer();
+        $this->payload = $inheritPayload && $parent
+            ? $parent->getPayload() : new PayloadContainer();
 
         parent::__construct($parent);
 

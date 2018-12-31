@@ -23,7 +23,7 @@ restrictions on it.
 
 ## Installation
 ```bash
-$ composer install eArc/eventTree
+$ composer install earc/event-tree
 ```
 
 ## The event tree
