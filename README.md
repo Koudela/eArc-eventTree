@@ -37,8 +37,8 @@ your project can easily keep track of all event trees.
 
 Each event tree maps to a directory tree. Each directory maps to an event
 observer. A class which implements the interface 
-`eArc\eventTree\Interfaces\EventListener` and which corresponding class file
-lives in such an observer directory gets attached to the observer.  
+`eArc\eventTree\Interfaces\EventListenerInterface` and which corresponding class 
+file lives in such an observer directory gets attached to the observer.  
 
 Events travel from the root of the event tree to its leafs.
 
@@ -127,7 +127,7 @@ include 'path/to/your/project/dir/' . 'vendor/autoload.php';
 First of all you need an `ObserverTreeFactory`.
 
 ```php
-use eArc\eventTree\Transformation\ObserverTreeFactory;
+use eArc\ObserverTree\ObserverTreeFactory;
 
 $OTF = new ObserverTreeFactory(
     '/absolute/path/to/your/eventTree/root', 
@@ -167,9 +167,9 @@ A listener may look like this.
 
 namespace your\eventTree\Namespace\myFirstObserverTree\preExport;
 
-use eArc\eventTree\Event\Event;
-use eArc\eventTree\Interfaces\EventListener;
-use eArc\eventTree\Tree\EventRouter;
+use eArc\eventTree\Event;
+use eArc\eventTree\Interfaces\EventListenerInterface;
+use eArc\eventTree\Propagation\EventRouter;
 
 class MyFooListener implements EventListener
 {
