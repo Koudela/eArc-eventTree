@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Debug;
+namespace eArc\EventTree\Debug;
 
 use eArc\EventTree\Event;
 use eArc\EventTree\Propagation\EventRouter;
