@@ -156,7 +156,7 @@ class EventRouter implements EventRouterInterface
         $cnt = count($this->path);
         $this->nthChild = 0;
 
-        if ($cnt > $this->depth) {
+        if ($cnt < $this->depth) {
             $this->eventPhase = self::PHASE_BEYOND;
 
             $children = [];
