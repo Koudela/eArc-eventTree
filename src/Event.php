@@ -93,38 +93,6 @@ class Event extends Node
     }
 
     /**
-     * Checks whether a specific payload item of the root event exists.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function has(string $name)
-    {
-        /** @var Event $root */
-        $root = $this->getRoot();
-
-        return $root->getPayload()->has($name);
-    }
-
-    /**
-     * Get a specific payload item of the root event.
-     *
-     * @param string $name
-     *
-     * @return mixed
-     *
-     * @throws ItemNotFoundException
-     */
-    public function get(string $name)
-    {
-        /** @var Event $root */
-        $root = $this->getRoot();
-
-        return $root->getPayload()->get($name);
-    }
-
-    /**
      * Get the payload from the event.
      *
      * @return PayloadContainer
@@ -168,19 +136,6 @@ class Event extends Node
     }
 
     /**
-     * Get the EventFactory for creating an offspring of the root event.
-     *
-     * @return EventFactory
-     */
-    public function getEventFactoryFromRoot(): EventFactoryInterface
-    {
-        /** @var Event $root */
-        $root = $this->getRoot();
-
-        return $root->getEventFactory();
-    }
-
-    /**
      * Get the referenced event router class.
      *
      * @return string
@@ -200,9 +155,50 @@ class Event extends Node
         return $this->eventFactory;
     }
 
+
+    /**
+     * Checks whether a specific payload item exists (at the own payload or at
+     * the payload of the root).
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function has(string $name)
+    {
+        /** @var Event $root */
+        $root = $this->getRoot();
+
+        return ($this->payload->has($name) || $root->getPayload()->has($name));
+    }
+
+    /**
+     * Get a specific payload item (first it looks at the own payload then at
+     * the one of the root).
+     *
+     * @param string $name
+     *
+     * @return mixed
+     *
+     * @throws ItemNotFoundException
+     */
+    public function get(string $name)
+    {
+        if ($this->payload->has($name)) {
+
+            return $this->payload->get($name);
+        }
+
+        /** @var Event $root */
+        $root = $this->getRoot();
+
+        return $root->getPayload()->get($name);
+    }
+
     /**
      * Checks the payload (first the own, then the one of the root) if it has a
-     * closure named like the method call.
+     * closure named like the method call and executes it using the supplied
+     * arguments.
      *
      * @param $name
      * @param $arguments
