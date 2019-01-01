@@ -199,4 +199,35 @@ class Event extends Node
     {
         return $this->eventFactory;
     }
+
+    /**
+     * Checks the payload (first the own, then the one of the root) if it has a
+     * closure named like the method call.
+     *
+     * @param $name
+     * @param $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        if ($this->payload->has($name)) {
+            $item = $this->payload->get($name);
+            if ($item instanceof \Closure) {
+
+                return $item(...$arguments);
+            }
+        }
+
+        /** @var Event $root */
+        $root = $this->getRoot();
+        if ($root->getPayload()->has($name)) {
+            $item = $root->getPayload()->get($name);
+            if ($item instanceof \Closure) {
+                return $item(...$arguments);
+            }
+        }
+
+        throw new \BadMethodCallException();
+    }
 }
