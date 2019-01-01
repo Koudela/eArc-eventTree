@@ -209,7 +209,7 @@ class Event extends Node
      *
      * @return mixed
      */
-    public function __call($name, $arguments)
+    public function call($name, $arguments)
     {
         if ($this->payload->has($name)) {
             $item = $this->payload->get($name);
