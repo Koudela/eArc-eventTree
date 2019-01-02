@@ -22,7 +22,14 @@ interface EventRouterInterface
     public function dispatchEvent(): void;
 
     /**
-     * Set additional state. Is called by Event::transferState().
+     * Get state.
+     *
+     * @return int
+     */
+    public function getState(): int;
+
+    /**
+     * Set state.
      *
      * @param int $state
      */

@@ -13,6 +13,7 @@ namespace eArc\EventTree\Interfaces;
 use eArc\eventTree\Event;
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
 use eArc\EventTree\Exceptions\InvalidStartNodeException;
+use eArc\PayloadContainer\Exceptions\ItemOverwriteException;
 use eArc\PayloadContainer\Exceptions\PayloadOverwriteException;
 use eArc\ObserverTree\Observer;
 
@@ -81,20 +82,20 @@ interface EventFactoryInterface
     /**
      * Dispatches the event with a new event router class.
      *
-     * @param string $eventRouter
+     * @param string $eventRouterClass
      *
      * @return EventFactoryInterface
      */
-    public function setRouter(string $eventRouter): EventFactoryInterface;
+    public function setRouter(string $eventRouterClass): EventFactoryInterface;
 
     /**
      * Builds the event with a new referenced event factory class.
      *
-     * @param string $eventFactory
+     * @param string $eventFactoryClass
      *
      * @return EventFactoryInterface
      */
-    public function setFactory(string $eventFactory): EventFactoryInterface;
+    public function setFactory(string $eventFactoryClass): EventFactoryInterface;
 
     /**
      * Builds the event. The observer tree, maxDepth, starting and destination
@@ -107,7 +108,7 @@ interface EventFactoryInterface
      * tree.
      * @throws InvalidDestinationNodeException The destination node does not
      * exist on the tree.
-     * @throws PayloadOverwriteException The inherited Payload has the an item
+     * @throws ItemOverwriteException The inherited Payload has the an item
      * of the same name as added by addPayload and overwrite was set to false.
      */
     public function build(): Event;

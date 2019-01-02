@@ -10,155 +10,76 @@
 
 namespace eArc\EventTree;
 
+use eArc\EventTree\Exceptions\EventException;
 use eArc\EventTree\Interfaces\EventFactoryInterface;
 use eArc\EventTree\Interfaces\EventRouterInterface;
 use eArc\EventTree\Transformation\EventFactory;
 use eArc\EventTree\Propagation\EventRouter;
 use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
 use eArc\PayloadContainer\PayloadContainer;
-use eArc\Tree\Node;
+use eArc\Tree\ContentNode;
 
 /**
  * Adds the dispatch method and the factory getters.
  */
-class Event extends Node
+class Event
 {
+    /** @var ContentNode */
+    protected $lineage;
+
     /** @var PayloadContainer */
     protected $payload;
 
-    /** @var Handler */
-    protected $state;
+    /** @var Handler|null */
+    protected $handler;
 
     /** @var Type */
     protected $type;
 
     /** @var string */
-    protected $eventRouter;
+    protected $eventRouterClass;
 
     /** @var string */
-    protected $eventFactory;
+    protected $eventFactoryClass;
+
+    /** @var EventRouterInterface|null */
+    protected $eventRouter;
 
     /**
      * @param Event|null $parent
      * @param Type|null $type
-     * @param bool $inheritPayload
+     * @param PayloadContainer|null $payload
      * @param string|null $eventRouterClass
      * @param string|null $eventFactoryClass
      */
     public function __construct(
         ?Event $parent = null,
         ?Type  $type = null,
-        bool $inheritPayload = false,
+        ?PayloadContainer $payload = null,
         string $eventRouterClass = null,
         string $eventFactoryClass = null
     ) {
-        $this->type = $type;
-        $this->payload = $inheritPayload && $parent
-            ? $parent->getPayload() : new PayloadContainer();
+        $this->lineage = new ContentNode(
+            $parent ? $parent->expose(ContentNode::class) : null,
+            null,
+            $this
+        );
 
-        parent::__construct($parent);
+        $this->type = $type ??
+            $parent ? $parent->expose(Type::class) : null;
 
-        if ($parent) {
-            if (!$eventRouterClass) {
-                $eventRouterClass = $parent->getEventRouterClass();
-            }
-            if (!$eventFactoryClass) {
-                $eventFactoryClass = $parent->getEventFactoryClass();
-            }
-            $this->state = new Handler();
-        }
+        $this->payload = $payload ??
+            $parent ? $parent->expose(PayloadContainer::class) : new PayloadContainer();
 
-        $this->eventRouter = $eventRouterClass ?? EventRouter::class;
-        $this->eventFactory = $eventFactoryClass ?? EventFactory::class;
+        $this->eventRouterClass = $eventRouterClass ??
+            $parent ? $parent->expose(EventRouterInterface::class) : EventRouter::class;
+
+        $this->eventFactoryClass = $eventFactoryClass ??
+            $parent ? $parent->expose(EventFactoryInterface::class) : EventFactory::class;
     }
 
     /**
-     * Get the type of the event.
-     *
-     * @return Type
-     */
-    public function getType(): Type
-    {
-        return $this->type;
-    }
-
-    /**
-     * Get the handler for the state of the event.
-     *
-     * @return Handler
-     */
-    public function getHandler(): Handler
-    {
-        return $this->state;
-    }
-
-    /**
-     * Get the payload from the event.
-     *
-     * @return PayloadContainer
-     */
-    public function getPayload(): PayloadContainer
-    {
-        return $this->payload;
-    }
-
-    /**
-     * Dispatches the event on its tree according to its type.
-     *
-     * Hint: Do not call this method on a root event. Root events can not be
-     * dispatched.
-     *
-     * @throws \BadMethodCallException
-     */
-    public function dispatch(): void
-    {
-        if ($this === $this->getRoot()) {
-            throw new \BadMethodCallException("A root event can not be dispatched!");
-        }
-
-        $eventRouter = new $this->eventRouter($this);
-
-        if (!$eventRouter instanceof EventRouterInterface) {
-            throw new \RuntimeException('`'.$this->eventRouter.'` implements not the EventRouterInterface.');
-        }
-
-        $eventRouter->dispatchEvent();
-    }
-
-    /**
-     * Get the EventFactory for creating an offspring of this event.
-     *
-     * @return EventFactory
-     */
-    public function getEventFactory(): EventFactoryInterface
-    {
-        return new $this->eventFactory($this);
-    }
-
-    /**
-     * Get the referenced event router class.
-     *
-     * @return string
-     */
-    public function getEventRouterClass(): string
-    {
-        return $this->eventRouter;
-    }
-
-    /**
-     * Get the referenced event factory class.
-     *
-     * @return string
-     */
-    public function getEventFactoryClass(): string
-    {
-        return $this->eventFactory;
-    }
-
-
-    /**
-     * Checks whether a specific payload item exists (at the own payload or at
-     * the payload of the root).
+     * Checks whether a specific payload item exists (locally or at root).
      *
      * @param string $name
      *
@@ -166,15 +87,12 @@ class Event extends Node
      */
     public function has(string $name)
     {
-        /** @var Event $root */
-        $root = $this->getRoot();
-
-        return ($this->payload->has($name) || $root->getPayload()->has($name));
+        return ($this->payload->has($name)
+            || $this->getRoot()->expose(PayloadContainer::class)->has($name));
     }
 
     /**
-     * Get a specific payload item (first it looks at the own payload then at
-     * the one of the root).
+     * Get a specific payload item (locally or from root).
      *
      * @param string $name
      *
@@ -189,41 +107,129 @@ class Event extends Node
             return $this->payload->get($name);
         }
 
-        /** @var Event $root */
-        $root = $this->getRoot();
-
-        return $root->getPayload()->get($name);
+        return $this->getRoot()
+            ->expose(PayloadContainer::class)
+            ->get($name);
     }
 
     /**
-     * Checks the payload (first the own, then the one of the root) if it has a
-     * closure named like the method call and executes it using the supplied
-     * arguments.
+     * Calls a specific closure item (locally or from root).
      *
-     * @param $name
-     * @param $arguments
+     * @param string $name
+     * @param array $arguments
      *
      * @return mixed
      */
-    public function call($name, $arguments)
+    public function call(string $name, array $arguments)
     {
         if ($this->payload->has($name)) {
-            $item = $this->payload->get($name);
-            if ($item instanceof \Closure) {
 
-                return $item(...$arguments);
-            }
+            return $this->payload->call($name, $arguments);
         }
 
-        /** @var Event $root */
-        $root = $this->getRoot();
-        if ($root->getPayload()->has($name)) {
-            $item = $root->getPayload()->get($name);
-            if ($item instanceof \Closure) {
-                return $item(...$arguments);
-            }
+        return $this->getRoot()
+            ->expose(PayloadContainer::class)
+            ->call($name, $arguments);
+    }
+
+    /**
+     * Sets a specific item locally.
+     *
+     * @param string $name
+     * @param $item
+     */
+    public function set(string $name, $item): void
+    {
+        $this->payload->set($name, $item);
+    }
+
+    /**
+     * Dispatches the event on its tree according to its type.
+     *
+     * Hint: Do not call this method on a root event. Root events can not be
+     * dispatched.
+     *
+     * @throws \BadMethodCallException
+     */
+    public function dispatch(): void
+    {
+        if ($this->eventRouter instanceof EventRouterInterface) {
+            throw new EventException('This event has been dispatched already.');
         }
 
-        throw new \BadMethodCallException();
+        if ($this === $this->getRoot()) {
+            throw new EventException('A root event can not be dispatched!');
+        }
+
+        $this->eventRouter = new $this->eventRouterClass($this);
+
+        if (!$this->eventRouter instanceof EventRouterInterface) {
+            throw new EventException(
+                '`'.$this->eventRouterClass.'` need to implement the EventRouterInterface.'
+            );
+        }
+
+        $this->handler = new Handler($this->eventRouter);
+        $this->eventRouter->dispatchEvent();
+    }
+
+
+    /**
+     * Get the EventFactory for creating an offspring of this event.
+     *
+     * @return EventFactory
+     */
+    public function getEventFactory(): EventFactoryInterface
+    {
+        return new $this->eventFactoryClass($this);
+    }
+
+    /**
+     * Get root of event.
+     */
+    public function getRoot(): Event
+    {
+        /** @var ContentNode $root */
+        $root = $this->lineage->getRoot();
+
+        return $root->getContent();
+    }
+
+    /**
+     * Get the handler for the state of the event.
+     *
+     * @return Handler
+     */
+    public function getHandler(): Handler
+    {
+        if (null === $this->handler) {
+            throw new EventException('The event has not been dispatched yet.');
+        }
+
+        return $this->handler;
+    }
+
+    /**
+     * Get property from Event.
+     *
+     * @param string $type
+     *
+     * @return PayloadContainer|Type|ContentNode|string|null
+     */
+    public function expose(string $type)
+    {
+        switch ($type) {
+            case ContentNode::class:
+                return $this->lineage;
+            case Type::class:
+                return $this->type;
+            case EventRouterInterface::class:
+                return $this->eventRouterClass;
+            case EventFactoryInterface::class:
+                return $this->eventFactoryClass;
+            case PayloadContainer::class:
+            default:
+                 return $this->payload;
+        }
     }
 }
