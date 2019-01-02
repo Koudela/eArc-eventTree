@@ -14,6 +14,7 @@ use eArc\EventTree\Type;
 use eArc\EventTree\Interfaces\EventFactoryInterface;
 use eArc\EventTree\Event;
 use eArc\ObserverTree\Observer;
+use eArc\PayloadContainer\PayloadContainer;
 
 /**
  * The event factory simplifies the creation of an event. Only root events shall
@@ -113,18 +114,18 @@ class EventFactory implements EventFactoryInterface
     /**
      * @inheritdoc
      */
-    public function setRouter(string $eventRouter): EventFactoryInterface
+    public function setRouter(string $eventRouterClass): EventFactoryInterface
     {
-        $this->routerClass = $eventRouter;
+        $this->routerClass = $eventRouterClass;
         return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function setFactory(string $eventFactory): EventFactoryInterface
+    public function setFactory(string $eventFactoryClass): EventFactoryInterface
     {
-        $this->factoryClass = $eventFactory;
+        $this->factoryClass = $eventFactoryClass;
         return $this;
     }
 
@@ -133,22 +134,32 @@ class EventFactory implements EventFactoryInterface
      */
     public function build(): Event
     {
+        $parentType = $this->parent->expose(Type::class);
+
         $event = new Event(
             $this->parent,
             new Type(
-                $this->tree ?? $this->parent->getType()->getTree(),
-                $this->start ?? $this->parent->getType()->getStart(),
-                $this->destination ?? $this->parent->getType()->getDestination(),
-                $this->maxDepth !== -1 ? $this->maxDepth : $this->parent->getType()->getMaxDepth()
+                $this->tree ?? $parentType->getTree(),
+                $this->start ?? $parentType->getStart(),
+                $this->destination ?? $parentType->getDestination(),
+                $this->maxDepth !== -1 ? $this->maxDepth : $parentType->getMaxDepth()
             ),
-            $this->inheritPayload,
+            $this->inheritPayload ? null : new PayloadContainer(),
             $this->routerClass,
             $this->factoryClass
         );
 
+        $payloadContainer = $event->expose(PayloadContainer::class);
+
         foreach ($this->payload as $name => $payload)
         {
-            $event->getPayload()->set($name, $payload[0], $payload[1]);
+            if ($payload[1]) {
+                $payloadContainer->overwrite($name, $payload[0]);
+
+                continue;
+            }
+
+            $payloadContainer->set($name, $payload[0]);
         }
 
         return $event;

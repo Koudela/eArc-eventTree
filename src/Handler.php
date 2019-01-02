@@ -21,8 +21,13 @@ class Handler
     const EVENT_IS_TIED = 2;
     const EVENT_IS_TERMINATED = 4;
 
-    /** @var int */
-    protected $state = 0;
+    /** @var EventRouterInterface */
+    protected $eventRouter;
+
+    public function __construct(EventRouterInterface $eventRouter)
+    {
+        $this->eventRouter = $eventRouter;
+    }
 
     /**
      * If the event is silenced it does not activate the listeners of the
@@ -30,7 +35,7 @@ class Handler
      */
     public function silence(): void
     {
-        $this->state = $this->state | self::EVENT_IS_SILENCED;
+        $this->eventRouter->setState(self::EVENT_IS_SILENCED);
     }
 
     /**
@@ -39,7 +44,7 @@ class Handler
      */
     public function tie(): void
     {
-        $this->state = $this->state | self::EVENT_IS_TIED;
+        $this->eventRouter->setState(self::EVENT_IS_TIED);
     }
 
     /**
@@ -48,7 +53,7 @@ class Handler
      */
     public function terminate(): void
     {
-        $this->state = $this->state | self::EVENT_IS_TERMINATED;
+        $this->eventRouter->setState(self::EVENT_IS_TERMINATED);
     }
 
     /**
@@ -57,23 +62,8 @@ class Handler
      */
     public function kill(): void
     {
-        $this->terminate();
-        $this->tie();
-    }
-
-    /**
-     * Moves the state from the event handler to the event router
-     *
-     * @param EventRouterInterface $eventRouter
-     *
-     * @return int
-     */
-    public function transferState(EventRouterInterface $eventRouter): int
-    {
-        $state = $this->state;
-        $this->state = 0;
-        $eventRouter->setState($state);
-
-        return $state;
+        $this->eventRouter->setState(
+            self::EVENT_IS_TIED | self::EVENT_IS_TERMINATED
+        );
     }
 }

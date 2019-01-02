@@ -13,6 +13,7 @@ namespace eArc\EventTree\Propagation;
 use eArc\eventTree\Event;
 use eArc\EventTree\Handler;
 use eArc\EventTree\Interfaces\EventRouterInterface;
+use eArc\EventTree\Type;
 use eArc\ObserverTree\Observer;
 use Psr\Container\ContainerInterface;
 
@@ -70,8 +71,8 @@ class EventRouter implements EventRouterInterface
     public function __construct(Event $event)
     {
         $this->event = $event;
-        $this->maxDepth = $event->getType()->getMaxDepth();
-        $this->path = $this->event->getType()->getDestination();
+        $this->maxDepth = $event->expose(Type::class)->getMaxDepth();
+        $this->path = $this->event->expose(Type::class)->getDestination();
     }
 
     /**
@@ -79,10 +80,9 @@ class EventRouter implements EventRouterInterface
      */
     public function dispatchEvent(): void
     {
-        $this->event->getHandler()->transferState($this);
         $this->state = 0;
 
-        $this->currentChildren = [$this->event->getType()->getStartNode()];
+        $this->currentChildren = [$this->event->expose(Type::class)->getStartNode()];
         $this->nodesInLayerCnt = 1;
         $this->nthChild = 0;
         $this->depth = 0;
@@ -192,7 +192,8 @@ class EventRouter implements EventRouterInterface
         /** @var Event $rootEvent */
         $rootEvent = $this->event->getRoot();
 
-        return $rootEvent->getPayload()->has('container') ? $rootEvent->get('container') : null;
+        return $rootEvent->has('container')
+            ? $rootEvent->get('container') : null;
     }
 
     /**
@@ -208,19 +209,27 @@ class EventRouter implements EventRouterInterface
             $this->event,
             $this->eventPhase,
             function() use ($eventRouter) {
-                $state = $eventRouter->event->getHandler()->transferState($eventRouter);
-                return 0 !== $state & Handler::EVENT_IS_SILENCED ? Observer::CALL_LISTENER_BREAK : null;
+                return 0 !== $eventRouter->getState() & Handler::EVENT_IS_SILENCED ?
+                    Observer::CALL_LISTENER_BREAK : null;
             },
             null,
             null,
             $this->getContainer()
         );
-
-        $this->event->getHandler()->transferState($this);
     }
 
     /**
-     * Set additional state. Is called by Event::transferState().
+     * Get state.
+     *
+     * @return int
+     */
+    public function getState(): int
+    {
+        return $this->state;
+    }
+
+    /**
+     * Set state.
      *
      * @param int $state
      */

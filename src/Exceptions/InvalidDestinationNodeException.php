@@ -13,6 +13,6 @@ namespace eArc\EventTree\Exceptions;
 /**
  * Gets thrown if an event is build with an invalid destination.
  */
-class InvalidDestinationNodeException extends \RuntimeException
+class InvalidDestinationNodeException extends EventException
 {
 }

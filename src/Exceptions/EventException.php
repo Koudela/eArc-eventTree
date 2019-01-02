@@ -7,12 +7,11 @@
  * @copyright Copyright (c) 2018 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
-
 namespace eArc\EventTree\Exceptions;
 
 /**
- * Gets thrown if an event is build with an invalid start node.
+ * Generic event exception.
  */
-class InvalidStartNodeException extends EventException
+class EventException extends \RuntimeException
 {
 }

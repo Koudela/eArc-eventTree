@@ -14,6 +14,7 @@ use eArc\EventTree\Event;
 use eArc\EventTree\Propagation\EventRouter;
 use eArc\EventTree\Type;
 use eArc\ObserverTree\Observer;
+use eArc\Tree\ContentNode;
 
 /**
  * The toString() functions of Node and Observer aren't an exact match for the
@@ -31,8 +32,8 @@ abstract class Debug
      */
     public static function toString(Event $event): string
     {
-        $str = $event->getName() . ":\n";
-        $str .= self::typeToString($event->getType());
+        $str = $event->expose(ContentNode::class)->getName() . ":\n";
+        $str .= self::typeToString($event->expose(Type::class));
         $str .= "  children:\n";
         $str .= self::childrenToString($event, '    ');
         return $str;
@@ -50,8 +51,11 @@ abstract class Debug
     {
         $str = '';
 
-        foreach ($parent->getChildren() as $name => $event)
+        /** @var ContentNode $node */
+        foreach ($parent->expose(ContentNode::class)->getChildren() as $name => $node)
         {
+            $event = $node->getContent();
+
             $str .= $indent . $name . ":\n";
             $str .= self::typeToString($event, $indent . '  ');
             $str .= $indent . "  children:\n";
