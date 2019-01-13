@@ -60,22 +60,22 @@ class Event
         string $eventFactoryClass = null
     ) {
         $this->lineage = new ContentNode(
-            $parent ? $parent->expose(ContentNode::class) : null,
+            ($parent ? $parent->expose(ContentNode::class) : null),
             null,
             $this
         );
 
         $this->type = $type ??
-            $parent ? $parent->expose(Type::class) : null;
+            ($parent ? $parent->expose(Type::class) : null);
 
         $this->payload = $payload ??
-            $parent ? $parent->expose(PayloadContainer::class) : new PayloadContainer();
+            ($parent ? $parent->expose(PayloadContainer::class) : new PayloadContainer());
 
         $this->eventRouterClass = $eventRouterClass ??
-            $parent ? $parent->expose(EventRouterInterface::class) : EventRouter::class;
+            ($parent ? $parent->expose(EventRouterInterface::class) : EventRouter::class);
 
         $this->eventFactoryClass = $eventFactoryClass ??
-            $parent ? $parent->expose(EventFactoryInterface::class) : EventFactory::class;
+            ($parent ? $parent->expose(EventFactoryInterface::class) : EventFactory::class);
     }
 
     /**
