@@ -1,6 +1,7 @@
 <?php
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * event tree component
  *
  * @package earc/event-tree
  * @link https://github.com/Koudela/eArc-eventTree/
