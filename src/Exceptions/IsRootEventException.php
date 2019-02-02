@@ -9,11 +9,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace Exceptions;
+
+use eArc\EventTree\Exceptions\EventTreeException;
 
 /**
- * Event is build with an invalid destination.
+ * Some things cannot be done with root events.
  */
-class InvalidDestinationNodeException extends EventTreeException
+class IsRootEventException extends EventTreeException
 {
 }

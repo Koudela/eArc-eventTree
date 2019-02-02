@@ -8,12 +8,13 @@
  * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
-
 namespace eArc\EventTree\Exceptions;
 
+use Exception;
+
 /**
- * Event is build with an invalid destination.
+ * Generic event tree exception.
  */
-class InvalidDestinationNodeException extends EventTreeException
+class EventTreeException extends Exception
 {
 }

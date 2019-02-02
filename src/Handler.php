@@ -1,37 +1,38 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * event tree component
  *
  * @package earc/event-tree
- * @link https://github.com/Koudela/earc-eventTree/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @link https://github.com/Koudela/eArc-eventTree/
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
 namespace eArc\EventTree;
 
-use eArc\EventTree\Interfaces\EventRouterInterface;
+use eArc\EventTree\Interfaces\TreeEventRouterInterface;
+use eArc\EventTree\Interfaces\HandlerInterface;
 
 /**
  * Defines a three dimensional boolean state the event is in.
  */
-class Handler
+class Handler implements HandlerInterface
 {
     const EVENT_IS_SILENCED = 1;
     const EVENT_IS_TIED = 2;
     const EVENT_IS_TERMINATED = 4;
 
-    /** @var EventRouterInterface */
+    /** @var TreeEventRouterInterface */
     protected $eventRouter;
 
-    public function __construct(EventRouterInterface $eventRouter)
+    public function __construct(TreeEventRouterInterface $eventRouter)
     {
         $this->eventRouter = $eventRouter;
     }
 
     /**
-     * If the event is silenced it does not activate the listeners of the
-     * current observer which it has not activated yet.
+     * @inheritdoc
      */
     public function silence(): void
     {
@@ -39,8 +40,7 @@ class Handler
     }
 
     /**
-     * If the event is tied it does not visit any observers that are not a
-     * descendant of the observer node the event is currently on.
+     * @inheritdoc
      */
     public function tie(): void
     {
@@ -48,8 +48,7 @@ class Handler
     }
 
     /**
-     * If the event is terminated it does not visit the descendants of the
-     * current observer node.
+     * @inheritdoc
      */
     public function terminate(): void
     {
@@ -57,8 +56,7 @@ class Handler
     }
 
     /**
-     * A killed event can not leave the current observer node. But it can
-     * be handed from the observer down to any remaining listeners.
+     * @inheritdoc
      */
     public function kill(): void
     {

@@ -9,11 +9,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace Exceptions;
+
+use eArc\EventTree\Exceptions\EventTreeException;
 
 /**
- * Event is build with an invalid destination.
+ * The event is not dispatched yet.
  */
-class InvalidDestinationNodeException extends EventTreeException
+class IsNotDispatchedException extends EventTreeException
 {
 }

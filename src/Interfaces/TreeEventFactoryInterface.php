@@ -1,62 +1,61 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * event tree component
  *
  * @package earc/event-tree
- * @link https://github.com/Koudela/earc-eventTree/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @link https://github.com/Koudela/eArc-eventTree/
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
 namespace eArc\EventTree\Interfaces;
 
-use eArc\eventTree\Event;
+use eArc\Container\Exceptions\ItemOverwriteException;
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
 use eArc\EventTree\Exceptions\InvalidStartNodeException;
-use eArc\PayloadContainer\Exceptions\ItemOverwriteException;
-use eArc\PayloadContainer\Exceptions\PayloadOverwriteException;
-use eArc\ObserverTree\Observer;
+use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
 
 /**
  * Interface for factories building events.
  */
-interface EventFactoryInterface
+interface TreeEventFactoryInterface
 {
     /**
      * Set the ObserverTree the event traverses.
      *
-     * @param Observer $observerTree
+     * @param ObserverTreeInterface $observerTree
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function tree(Observer $observerTree): EventFactoryInterface;
+    public function tree(ObserverTreeInterface $observerTree): TreeEventFactoryInterface;
 
     /**
      * Set the starting node for the event.
      *
-     * @param array $start
+     * @param string[] $start
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function start(array $start = array()): EventFactoryInterface;
+    public function start(array $start = array()): TreeEventFactoryInterface;
 
     /**
      * Set the destination node of the event.
      *
-     * @param array $destination
+     * @param string[] $destination
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function destination(array $destination = array()): EventFactoryInterface;
+    public function destination(array $destination = array()): TreeEventFactoryInterface;
 
     /**
      * Set the maximal depth the event travels from the start node.
      *
      * @param int|null $maxDepth
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function maxDepth(?int $maxDepth = null): EventFactoryInterface;
+    public function maxDepth(?int $maxDepth = null): TreeEventFactoryInterface;
 
     /**
      * Set to true if the event shall start with the same payload its parent
@@ -64,9 +63,9 @@ interface EventFactoryInterface
      *
      * @param bool $inheritPayload
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function inheritPayload(bool $inheritPayload = true): EventFactoryInterface;
+    public function inheritPayload(bool $inheritPayload = true): TreeEventFactoryInterface;
 
     /**
      * Add payload to the event.
@@ -75,34 +74,34 @@ interface EventFactoryInterface
      * @param $payload
      * @param bool $overwrite
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function addPayload(string $key, $payload, $overwrite = false): EventFactoryInterface;
+    public function addPayload(string $key, $payload, $overwrite = false): TreeEventFactoryInterface;
 
     /**
      * Dispatches the event with a new event router class.
      *
      * @param string $eventRouterClass
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function setRouter(string $eventRouterClass): EventFactoryInterface;
+    public function setRouter(string $eventRouterClass): TreeEventFactoryInterface;
 
     /**
      * Builds the event with a new referenced event factory class.
      *
      * @param string $eventFactoryClass
      *
-     * @return EventFactoryInterface
+     * @return TreeEventFactoryInterface
      */
-    public function setFactory(string $eventFactoryClass): EventFactoryInterface;
+    public function setFactory(string $eventFactoryClass): TreeEventFactoryInterface;
 
     /**
      * Builds the event. The observer tree, maxDepth, starting and destination
      * node are inherit by the parent if not set. If inheritPayload is not set
      * to true the event starts with a new payload.
      *
-     * @return Event
+     * @return TreeEventInterface
      *
      * @throws InvalidStartNodeException The start node does not exist on the
      * tree.
@@ -111,5 +110,5 @@ interface EventFactoryInterface
      * @throws ItemOverwriteException The inherited Payload has the an item
      * of the same name as added by addPayload and overwrite was set to false.
      */
-    public function build(): Event;
+    public function build(): TreeEventInterface;
 }

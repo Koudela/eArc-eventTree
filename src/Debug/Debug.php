@@ -1,20 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * event tree component
  *
  * @package earc/event-tree
- * @link https://github.com/Koudela/earc-eventTree/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @link https://github.com/Koudela/eArc-eventTree/
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
 namespace eArc\EventTree\Debug;
 
-use eArc\EventTree\Event;
-use eArc\EventTree\Propagation\EventRouter;
-use eArc\EventTree\Type;
-use eArc\ObserverTree\Observer;
-use eArc\Tree\ContentNode;
+use eArc\EventTree\Interfaces\RoutingTypeInterface;
+use eArc\EventTree\Interfaces\TreeEventInterface;
+use eArc\EventTree\Interfaces\TreeEventRouterInterface;
+use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
 
 /**
  * The toString() functions of Node and Observer aren't an exact match for the
@@ -26,14 +26,14 @@ abstract class Debug
     /**
      * Transforms the tree of events to a string.
      *
-     * @param Event $event
+     * @param TreeEventInterface $event
      *
      * @return string
      */
-    public static function toString(Event $event): string
+    public static function toString(TreeEventInterface $event): string
     {
-        $str = $event->expose(ContentNode::class)->getName() . ":\n";
-        $str .= self::typeToString($event->expose(Type::class));
+        $str = $event->getName() . ":\n";
+        $str .= self::typeToString((function() {return $this->routingType;})->call($event));
         $str .= "  children:\n";
         $str .= self::childrenToString($event, '    ');
         return $str;
@@ -42,22 +42,19 @@ abstract class Debug
     /**
      * Transforms the children of a event to a string.
      *
-     * @param Event $parent
+     * @param TreeEventInterface $parent
      * @param string $indent
      *
      * @return string
      */
-    protected static function childrenToString(Event $parent, $indent = ''): string
+    protected static function childrenToString(TreeEventInterface $parent, $indent = ''): string
     {
         $str = '';
 
-        /** @var ContentNode $node */
-        foreach ($parent->expose(ContentNode::class)->getChildren() as $name => $node)
+        foreach ($parent->getChildren() as $name => $event)
         {
-            $event = $node->getContent();
-
             $str .= $indent . $name . ":\n";
-            $str .= self::typeToString($event, $indent . '  ');
+            $str .= self::typeToString((function() {return $this->routingType;})->call($event), $indent . '  ');
             $str .= $indent . "  children:\n";
             $str .= self::childrenToString($event, $indent . '    ');
         }
@@ -68,12 +65,12 @@ abstract class Debug
     /**
      * Transforms the type of an event to a string.
      *
-     * @param Type $type
+     * @param RoutingTypeInterface $type
      * @param string $indent
      *
      * @return string
      */
-    public static function typeToString(Type $type, $indent = ''): string
+    public static function typeToString(RoutingTypeInterface $type, $indent = ''): string
     {
         $treeIdentifier = $type->getTree() ? $type->getTree()->getName() : '';
         return
@@ -85,21 +82,18 @@ abstract class Debug
 
 
     /**
-     * @param Observer $observer
+     * @param ObserverTreeInterface $observer
      * @param string $indent
      *
      * @return string
-     *
-     * @throws \ReflectionException
      */
-    public static function treeToString(Observer $observer, $indent = ''): string
+    public static function treeToString(ObserverTreeInterface $observer, $indent = ''): string
     {
         $str = $indent . "--{$observer->getName()}--\n";
         $str .= self::listenersToString($observer, $indent . '  ');
 
         foreach ($observer->getChildren() as $child)
         {
-            /** @var Observer $child */
             $str .= self::treeToString($child, $indent . '  ');
         }
 
@@ -109,28 +103,21 @@ abstract class Debug
     /**
      * Transforms the attached listeners into a string representation.
      *
-     * @param Observer $observer
+     * @param ObserverTreeInterface $observer
      * @param string $indent
      *
      * @return string
-     *
-     * @throws \ReflectionException
      */
-    protected static function listenersToString(Observer $observer, $indent = ''): string
+    protected static function listenersToString(ObserverTreeInterface $observer, $indent = ''): string
     {
-        $ref = new \ReflectionClass($observer);
-        $propertyListener = $ref->getProperty('listener');
-        $propertyListener->setAccessible(true);
-        $listener = $propertyListener->getValue($observer);
-        $propertyType = $ref->getProperty('type');
-        $propertyType->setAccessible(true);
-        $type = $propertyType->getValue($observer);
+        $listener = (function() {return $this->listenerPatience;})->call($observer);
 
         $str = '';
 
-        foreach ($listener as $FQN => $patience) {
-            $str .= $indent . '  ' . $FQN . ': ' . '{ patience: $patience, type: { '
-                . self::eventPhasesToString($type[$FQN]) . " } }\n";
+        foreach ($listener as $fQCN => $patience) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $str .= $indent . '  ' . $fQCN . ': ' . '{ patience: $patience, type: { '
+                . self::eventPhasesToString($fQCN::getTypes()) . " } }\n";
         }
 
         return $str;
@@ -145,25 +132,25 @@ abstract class Debug
      */
     public static function eventPhasesToString(int $eventPhases): string
     {
-        if (EventRouter::PHASE_ACCESS === $eventPhases) {
+        if (TreeEventRouterInterface::PHASE_ACCESS === $eventPhases) {
             return 'access';
         }
 
         $arr = [];
 
-        if (EventRouter::PHASE_START & $eventPhases) {
+        if (TreeEventRouterInterface::PHASE_START & $eventPhases) {
             $arr[] = 'start';
         }
 
-        if (EventRouter::PHASE_BEFORE & $eventPhases) {
+        if (TreeEventRouterInterface::PHASE_BEFORE & $eventPhases) {
             $arr[] = 'before';
         }
 
-        if (EventRouter::PHASE_DESTINATION & $eventPhases) {
+        if (TreeEventRouterInterface::PHASE_DESTINATION & $eventPhases) {
             $arr[] = 'destination';
         }
 
-        if (EventRouter::PHASE_BEYOND & $eventPhases) {
+        if (TreeEventRouterInterface::PHASE_BEYOND & $eventPhases) {
             $arr[] = 'beyond';
         }
 

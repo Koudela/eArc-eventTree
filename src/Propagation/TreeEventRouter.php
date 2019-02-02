@@ -1,35 +1,30 @@
-<?php
+<?php declare(strict_types=1);
 /**
-* e-Arc Framework - the explicit Architecture Framework
-*
-* @package earc/event-tree
-* @link https://github.com/Koudela/earc-eventTree/
-* @copyright Copyright (c) 2018 Thomas Koudela
-* @license http://opensource.org/licenses/MIT MIT License
-*/
+ * e-Arc Framework - the explicit Architecture Framework
+ * event tree component
+ *
+ * @package earc/event-tree
+ * @link https://github.com/Koudela/eArc-eventTree/
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
 namespace eArc\EventTree\Propagation;
 
-use eArc\eventTree\Event;
+use eArc\EventTree\Interfaces\RoutingTypeInterface;
+use eArc\eventTree\TreeEvent;
 use eArc\EventTree\Handler;
-use eArc\EventTree\Interfaces\EventRouterInterface;
-use eArc\EventTree\Type;
-use eArc\ObserverTree\Observer;
-use Psr\Container\ContainerInterface;
+use eArc\EventTree\Interfaces\TreeEventRouterInterface;
+use eArc\Observer\Interfaces\ObserverInterface;
+use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
 
 /**
  * Handles the traveling of the event and the observer calls. (Users of this
  * library must not care about this class. Direct interaction with this class
  * is advised against strongly.)
  */
-class EventRouter implements EventRouterInterface
+class TreeEventRouter implements TreeEventRouterInterface
 {
-    const PHASE_START = 1;
-    const PHASE_BEFORE = 2;
-    const PHASE_DESTINATION = 4;
-    const PHASE_BEYOND = 8;
-    const PHASE_ACCESS = 15;
-
     /* may change in each layer: */
 
     /** @var int */
@@ -56,23 +51,20 @@ class EventRouter implements EventRouterInterface
 
     /* can not change */
 
-    /** @var int|null */
-    protected $maxDepth;
-
-    /** @var array */
-    protected $path;
-
-    /** @var Event */
+    /** @var TreeEvent */
     protected $event;
 
+    /** @var RoutingTypeInterface */
+    protected $routingType;
+
     /**
-     * @param Event $event
+     * @param TreeEvent $event
+     * @param RoutingTypeInterface $routingType
      */
-    public function __construct(Event $event)
+    public function __construct(TreeEvent $event, RoutingTypeInterface $routingType)
     {
         $this->event = $event;
-        $this->maxDepth = $event->expose(Type::class)->getMaxDepth();
-        $this->path = $this->event->expose(Type::class)->getDestination();
+        $this->routingType = $routingType;
     }
 
     /**
@@ -82,7 +74,7 @@ class EventRouter implements EventRouterInterface
     {
         $this->state = 0;
 
-        $this->currentChildren = [$this->event->expose(Type::class)->getStartNode()];
+        $this->currentChildren = [$this->routingType->getStartNode()];
         $this->nodesInLayerCnt = 1;
         $this->nthChild = 0;
         $this->depth = 0;
@@ -137,13 +129,14 @@ class EventRouter implements EventRouterInterface
     }
 
     /**
-     * Whether the maximal depth is reached.
+     * Check whether the maximal depth is reached.
      *
      * @return bool
      */
     protected function isBeyondMaxDepth(): bool
     {
-        return null !== $this->maxDepth && $this->depth >= $this->maxDepth;
+        return null !== $this->routingType->getMaxDepth()
+            && $this->depth >= $this->routingType->getMaxDepth();
     }
 
     /**
@@ -153,7 +146,8 @@ class EventRouter implements EventRouterInterface
      */
     protected function getNextNodeLayer(): array
     {
-        $cnt = count($this->path);
+        $path = $this->routingType->getDestination();
+        $cnt = count($path);
         $this->nthChild = 0;
 
         if ($cnt < $this->depth) {
@@ -163,7 +157,7 @@ class EventRouter implements EventRouterInterface
 
             foreach ($this->currentChildren as $child)
             {
-                /* @var Observer $child */
+                /* @var ObserverTreeInterface $child */
                 foreach ($child->getChildren() as $newChild) {
                     $children[] = $newChild;
                 }
@@ -178,30 +172,15 @@ class EventRouter implements EventRouterInterface
 
         $this->eventPhase = $cnt < $this->depth ? self::PHASE_BEFORE : self::PHASE_DESTINATION;
 
-        return [$this->currentChildren[0]->getChild($this->path[$this->depth -1])];
-    }
-
-    /**
-     * Get the container if attached as 'container' to the root payload or null
-     * otherwise.
-     *
-     * @return mixed|null
-     */
-    protected function getContainer(): ?ContainerInterface
-    {
-        /** @var Event $rootEvent */
-        $rootEvent = $this->event->getRoot();
-
-        return $rootEvent->has('container')
-            ? $rootEvent->get('container') : null;
+        return [$this->currentChildren[0]->getChild($path[$this->depth -1])];
     }
 
     /**
      * Defines how the observer calls the listener.
      *
-     * @param Observer $observer
+     * @param ObserverTreeInterface $observer
      */
-    protected function visitObserver(Observer $observer): void
+    protected function visitObserver(ObserverTreeInterface $observer): void
     {
         $eventRouter = $this;
 
@@ -210,11 +189,10 @@ class EventRouter implements EventRouterInterface
             $this->eventPhase,
             function() use ($eventRouter) {
                 return 0 !== $eventRouter->getState() & Handler::EVENT_IS_SILENCED ?
-                    Observer::CALL_LISTENER_BREAK : null;
+                    ObserverInterface::CALL_LISTENER_BREAK : null;
             },
             null,
-            null,
-            $this->getContainer()
+            null
         );
     }
 
