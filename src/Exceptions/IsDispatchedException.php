@@ -12,8 +12,8 @@
 namespace eArc\EventTree\Exceptions;
 
 /**
- * Some things cannot be done with root events.
+ * The event is dispatched already.
  */
-class IsRootEventException extends EventTreeException
+class IsDispatchedException extends EventTreeException
 {
 }

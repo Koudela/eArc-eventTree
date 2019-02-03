@@ -11,8 +11,10 @@
 
 namespace eArc\EventTree;
 
-use eArc\Event\Exceptions\IsDispatchedException;
 use eArc\EventTree\Exceptions\EventTreeException;
+use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\EventTree\Exceptions\IsNotDispatchedException;
+use eArc\EventTree\Exceptions\IsRootEventException;
 use eArc\EventTree\Interfaces\RoutingTypeInterface;
 use eArc\EventTree\Interfaces\TreeEventFactoryInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
@@ -22,8 +24,6 @@ use eArc\EventTree\Transformation\TreeEventFactory;
 use eArc\EventTree\Propagation\TreeEventRouter;
 use eArc\PayloadContainer\Traits\PayloadContainerTrait;
 use eArc\Tree\Traits\NodeTrait;
-use Exceptions\IsNotDispatchedException;
-use Exceptions\IsRootEventException;
 
 /**
  * Adds the dispatch method and the factory getters.
@@ -53,6 +53,8 @@ class TreeEvent implements TreeEventInterface
      * @param RoutingType|null $routingType
      * @param string|null      $eventRouterClass
      * @param string|null      $eventFactoryClass
+     *
+     * @throws EventTreeException
      */
     public function __construct(
         ?TreeEvent $parent = null,

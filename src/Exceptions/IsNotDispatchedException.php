@@ -9,9 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace Exceptions;
-
-use eArc\EventTree\Exceptions\EventTreeException;
+namespace eArc\EventTree\Exceptions;
 
 /**
  * The event is not dispatched yet.

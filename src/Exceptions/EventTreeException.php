@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
+
 namespace eArc\EventTree\Exceptions;
 
 use Exception;

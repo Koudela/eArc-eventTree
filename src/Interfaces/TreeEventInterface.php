@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -11,14 +11,14 @@
 
 namespace eArc\EventTree\Interfaces;
 
-use eArc\Event\Exceptions\IsDispatchedException;
-use eArc\Observer\Interfaces\BaseEventInterface;
-use Exceptions\IsRootEventException;
+use eArc\Event\Interfaces\EventInterface;
+use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\EventTree\Exceptions\IsRootEventException;
 
 /**
- *
+ * Extended event interface.
  */
-interface TreeEventInterface extends BaseEventInterface
+interface TreeEventInterface extends EventInterface
 {
     /**
      * Dispatches the event on its tree according to its type.
