@@ -10,13 +10,16 @@
             "email": "thomas@koudela.net"
         }
     ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "psr/container": "^1.0"
+        "earc/event": "^0.0",
+        "earc/observer-tree": "^0.0"
     },
     "autoload": {
         "psr-4" : {
-            "eArc\\eventTree\\" : "src"
+            "eArc\\EventTree\\" : "src"
         }
     },
     "require-dev": {
