@@ -5,15 +5,15 @@
  *
  * @package earc/event-tree
  * @link https://github.com/Koudela/eArc-eventTree/
- * @copyright Copyright (c) 2018-2019 Thomas Koudela
+ * @copyright Copyright (c) 2018-2020 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
 namespace eArc\EventTree\Exceptions;
 
 /**
- * Some things cannot be done with root events.
+ * Event is build with an invalid destination.
  */
-class IsRootEventException extends EventTreeException
+class InvalidObserverNodeException extends BaseException
 {
 }

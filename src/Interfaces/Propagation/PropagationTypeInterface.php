@@ -9,21 +9,21 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Interfaces;
+namespace eArc\EventTree\Interfaces\Propagation;
 
-use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
+use eArc\eventTree\Interfaces\EventDispatcherInterface;
 
 /**
  * Defines an immutable four dimensional event routing type.
  */
-interface RoutingTypeInterface
+interface PropagationTypeInterface
 {
     /**
-     * Get the observer tree the event uses.
+     * Get the event dispatcher responsible for the event.
      *
-     * @return ObserverTreeInterface
+     * @return EventDispatcherInterface
      */
-    public function getTree(): ObserverTreeInterface;
+    public function getDispatcher(): EventDispatcherInterface;
 
     /**
      * Get the path to the start observer.
@@ -40,24 +40,10 @@ interface RoutingTypeInterface
     public function getDestination(): array;
 
     /**
-     * Get the maximal depth the event travels from the start node or null if
-     * there is no maximal depth.
+     * Get the maximal depth the event travels from the destination node or null
+     * if it is not limited.
      *
      * @return int|null
      */
     public function getMaxDepth(): ?int;
-
-    /**
-     * Get the Observer of the start node.
-     *
-     * @return ObserverTreeInterface
-     */
-    public function getStartNode(): ObserverTreeInterface;
-
-    /**
-     * Get the Observer of the destination node.
-     *
-     * @return ObserverTreeInterface
-     */
-    public function getDestinationNode(): ObserverTreeInterface;
 }

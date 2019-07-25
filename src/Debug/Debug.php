@@ -11,10 +11,9 @@
 
 namespace eArc\EventTree\Debug;
 
-use eArc\EventTree\Interfaces\RoutingTypeInterface;
+use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
-use eArc\EventTree\Interfaces\TreeEventRouterInterface;
-use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
+use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
 
 /**
  * The toString() functions of Node and Observer aren't an exact match for the
@@ -65,12 +64,12 @@ abstract class Debug
     /**
      * Transforms the type of an event to a string.
      *
-     * @param RoutingTypeInterface $type
+     * @param PropagationTypeInterface $type
      * @param string $indent
      *
      * @return string
      */
-    public static function typeToString(RoutingTypeInterface $type, $indent = ''): string
+    public static function typeToString(PropagationTypeInterface $type, $indent = ''): string
     {
         $treeIdentifier = $type->getTree() ? $type->getTree()->getName() : '';
         return

@@ -9,22 +9,22 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Interfaces;
+namespace eArc\EventTree\Interfaces\Propagation;
 
 /**
  * Defines a three dimensional boolean state the event is in.
  */
 interface HandlerInterface
 {
-    const EVENT_IS_SILENCED = 1;
+    const EVENT_IS_FORWARDED = 1;
     const EVENT_IS_TIED = 2;
     const EVENT_IS_TERMINATED = 4;
 
     /**
-     * If the event is silenced it does not activate the listeners of the
+     * If the event is forwarded it does not activate the listeners of the
      * current observer which it has not activated yet.
      */
-    public function silence(): void;
+    public function forward(): void;
 
     /**
      * If the event is tied it does not visit any observers that are not a
@@ -37,10 +37,4 @@ interface HandlerInterface
      * current observer node.
      */
     public function terminate(): void;
-
-    /**
-     * A killed event can not leave the current observer node. But it can
-     * be handed from the observer down to any remaining listeners.
-     */
-    public function kill(): void;
 }

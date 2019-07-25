@@ -14,8 +14,9 @@
     "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "earc/event": "^0.0",
-        "earc/observer-tree": "^0.0"
+        "psr/event-dispatcher": "^1.0",
+        "earc/di": "^2.1",
+        "earc/observer": "dev-master"
     },
     "autoload": {
         "psr-4" : {

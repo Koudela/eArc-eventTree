@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -9,13 +9,9 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\eventTree\Interfaces;
 
-use Exception;
-
-/**
- * Generic event tree exception.
- */
-class EventTreeException extends Exception
+interface SortableListener
 {
+    public static function getPatience(): float;
 }

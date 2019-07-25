@@ -14,6 +14,6 @@ namespace eArc\EventTree\Exceptions;
 /**
  * The event is not dispatched yet.
  */
-class IsNotDispatchedException extends EventTreeException
+class IsNotDispatchedException extends BaseException
 {
 }
