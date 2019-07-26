@@ -39,12 +39,10 @@ class PropagationType implements PropagationTypeInterface
      */
     public function __construct(array $start = [], array $destination = [], ?int $maxDepth = 0)
     {
-        $this->dispatcher = di_is_decorated(EventDispatcherInterface::class)
-            ? di_get(EventDispatcherInterface::class)
-            : di_get(EventDispatcher::class);
         $this->start = $start;
         $this->destination = $destination;
         $this->maxDepth = $maxDepth;
+        $this->__wakeup();
     }
 
     public function getDispatcher(): EventDispatcherInterface
@@ -65,5 +63,17 @@ class PropagationType implements PropagationTypeInterface
     public function getMaxDepth(): ?int
     {
         return $this->maxDepth;
+    }
+
+    public function __sleep(): array
+    {
+        return ['start', 'destination', 'maxDepth'];
+    }
+
+    public function __wakeup(): void
+    {
+        $this->dispatcher = di_is_decorated(EventDispatcherInterface::class)
+            ? di_get(EventDispatcherInterface::class)
+            : di_get(EventDispatcher::class);
     }
 }

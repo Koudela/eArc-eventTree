@@ -29,7 +29,7 @@ use Psr\EventDispatcher\StoppableEventInterface;
 class TreeEvent implements StoppableEventInterface, TreeEventInterface
 {
     /** @var int */
-    protected $transitionChangeState;
+    protected $transitionChangeState = 0;
 
     /** @var HandlerInterface|null */
     protected $handler;
@@ -37,7 +37,7 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     /** @var PropagationTypeInterface */
     protected $propagationType;
 
-    /** @var TransitionInfoInterface */
+    /** @var TransitionInfoInterface|null */
     protected $transitionInfo;
 
     /**
@@ -46,9 +46,6 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     public function __construct(PropagationType $propagationType)
     {
         $this->propagationType = $propagationType;
-        $this->transitionInfo = di_is_decorated(TransitionInfoInterface::class)
-            ? di_get(TransitionInfoInterface::class)
-            : di_get(TransitionInfo::class);
     }
 
     public function dispatch(): void
@@ -58,6 +55,9 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
         }
 
         $this->handler = new Handler($this);
+        $this->transitionInfo = di_is_decorated(TransitionInfoInterface::class)
+            ? di_get(TransitionInfoInterface::class)
+            : di_get(TransitionInfo::class);
         $this->propagationType->getDispatcher()->dispatch($this);
     }
 
@@ -99,5 +99,10 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     public static function getApplicableListener(): array
     {
         return [ListenerInterface::class];
+    }
+
+    public function __sleep()
+    {
+        return ['propagationType'];
     }
 }
