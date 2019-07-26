@@ -17,6 +17,12 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 
 interface ObserverTreeInterface extends ListenerProviderInterface
 {
+    const PHASE_START = 1;
+    const PHASE_BEFORE = 2;
+    const PHASE_DESTINATION = 4;
+    const PHASE_BEYOND = 8;
+    const PHASE_ACCESS = 15;
+
     /**
      * @param TreeEventInterface $event
      *

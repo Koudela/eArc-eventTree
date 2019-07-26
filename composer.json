@@ -16,7 +16,7 @@
         "php": "^7.2",
         "psr/event-dispatcher": "^1.0",
         "earc/di": "^2.1",
-        "earc/observer": "dev-master"
+        "earc/observer": "^1.0.1"
     },
     "autoload": {
         "psr-4" : {

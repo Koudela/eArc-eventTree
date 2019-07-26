@@ -23,7 +23,6 @@ use eArc\Observer\Interfaces\EventInterface;
  */
 interface TreeEventInterface extends EventInterface
 {
-
     /**
      * Dispatches the event on its tree according to its type.
      *
