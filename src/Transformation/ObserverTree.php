@@ -28,16 +28,12 @@ class ObserverTree implements ObserverTreeInterface
             throw new BaseException(sprintf('Event %s has to implement the %s', get_class($event), TreeEventInterface::class));
         }
 
-        $path = '';
-        $namespace = '';
-
         /** @var TreeEventInterface $event */
         foreach ($event->getPropagationType()->getStart() as $name) {
-            $path .= "/$name";
-            $namespace .= "\\$name";
+            $event->getTransitionInfo()->addChild($name);
         }
 
-        foreach ($this->iterateNode($event, $path, $namespace) as $callable) {
+        foreach ($this->iterateNode($event) as $callable) {
             yield $callable;
         }
 
@@ -46,10 +42,9 @@ class ObserverTree implements ObserverTreeInterface
         }
 
         foreach ($event->getPropagationType()->getDestination() as $name) {
-            $path .= "/$name";
-            $namespace .= "\\$name";
+            $event->getTransitionInfo()->addChild($name);
 
-            foreach ($this->iterateNode($event, $path, $namespace) as $callable) {
+            foreach ($this->iterateNode($event) as $callable) {
                 yield $callable;
             }
 
@@ -58,18 +53,17 @@ class ObserverTree implements ObserverTreeInterface
             }
         }
 
-        foreach ($this->iterateNodeRecursive($event, $event->getPropagationType()->getMaxDepth(), $path, $namespace) as $callable) {
+        foreach ($this->iterateNodeRecursive($event, $event->getPropagationType()->getMaxDepth()) as $callable) {
             yield $callable;
         }
     }
 
-    protected function iterateNodeRecursive(TreeEventInterface $event, int $maxDepth, string $path, string $namespace): iterable
+    protected function iterateNodeRecursive(TreeEventInterface $event, int $maxDepth): iterable
     {
-        foreach ($this->getSubDirNames($path) as $name) {
-            $newPath = $path.'/'.$name;
-            $newNamespace = $namespace.'\\'.$name;
+        foreach ($this->getSubDirNames($event->getTransitionInfo()->getCurrentPathFormatted('/')) as $name) {
+            $event->getTransitionInfo()->addChild($name);
 
-            foreach ($this->iterateNode($event, $newPath, $newNamespace) as $callable) {
+            foreach ($this->iterateNode($event) as $callable) {
                 yield $callable;
             }
 
@@ -78,10 +72,12 @@ class ObserverTree implements ObserverTreeInterface
             }
 
             if ($maxDepth > 0 && 0 === $event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TERMINATED) {
-                foreach ($this->iterateNodeRecursive($event, $maxDepth-1, $newPath, $newNamespace) as $callable) {
+                foreach ($this->iterateNodeRecursive($event, $maxDepth-1) as $callable) {
                     yield $callable;
                 }
             }
+
+            $event->getTransitionInfo()->goToParent();
 
             if (isset($isTied)) {
                 break;
@@ -113,15 +109,16 @@ class ObserverTree implements ObserverTreeInterface
 
     /**
      * @param TreeEventInterface $event
-     * @param string             $path
-     * @param string             $namespace
      *
      * @return iterable
      *
      * @throws InvalidObserverNodeException
      */
-    protected function iterateNode(TreeEventInterface $event, string $path, string $namespace): iterable
+    protected function iterateNode(TreeEventInterface $event): iterable
     {
+        $path = $event->getTransitionInfo()->getCurrentPathFormatted('/');
+        $namespace = $event->getTransitionInfo()->getCurrentPathFormatted('\\');
+
         $event->setTransitionChangeState(0);
 
         if (!isset($this->listener[$path])) {
@@ -172,7 +169,7 @@ class ObserverTree implements ObserverTreeInterface
     {
         $listener = null;
 
-        foreach (di_param('earc.observer_tree.directories') as $rootDir => $rootNamespace)
+        foreach (di_param('earc.event_tree.directories') as $rootDir => $rootNamespace)
         {
             chdir($rootDir);
 

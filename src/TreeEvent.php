@@ -15,9 +15,11 @@ use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\EventTree\Exceptions\IsNotDispatchedException;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
+use eArc\eventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\Handler;
 use eArc\EventTree\Propagation\PropagationType;
+use eArc\eventTree\Transformation\TransitionInfo;
 use eArc\Observer\Interfaces\ListenerInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
 
@@ -35,12 +37,18 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     /** @var PropagationTypeInterface */
     protected $propagationType;
 
+    /** @var TransitionInfoInterface */
+    protected $transitionInfo;
+
     /**
      * @param PropagationType $propagationType
      */
     public function __construct(PropagationType $propagationType)
     {
         $this->propagationType = $propagationType;
+        $this->transitionInfo = di_is_decorated(TransitionInfoInterface::class)
+            ? di_get(TransitionInfoInterface::class)
+            : di_get(TransitionInfo::class);
     }
 
     public function dispatch(): void
@@ -65,6 +73,11 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     public function getPropagationType(): PropagationTypeInterface
     {
         return $this->propagationType;
+    }
+
+    public function getTransitionInfo(): TransitionInfoInterface
+    {
+        return $this->transitionInfo;
     }
 
     public function getTransitionChangeState(): int

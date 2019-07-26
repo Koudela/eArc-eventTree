@@ -15,6 +15,7 @@ use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\EventTree\Exceptions\IsNotDispatchedException;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
+use eArc\eventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\Observer\Interfaces\EventInterface;
 
 /**
@@ -40,11 +41,18 @@ interface TreeEventInterface extends EventInterface
     public function getHandler(): HandlerInterface;
 
     /**
-     * Get the routing type of
+     * Get the propagation type of the tree event.
      *
      * @return PropagationTypeInterface
      */
     public function getPropagationType(): PropagationTypeInterface;
+
+    /**
+     * Get the info object of the current transition state.
+     *
+     * @return TransitionInfoInterface
+     */
+    public function getTransitionInfo(): TransitionInfoInterface;
 
     /**
      * Returns the transition change state the event is in.
