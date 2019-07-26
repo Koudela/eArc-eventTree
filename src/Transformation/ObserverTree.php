@@ -22,7 +22,7 @@ use eArc\eventTree\Util\CompositeDir;
 
 class ObserverTree implements ObserverTreeInterface
 {
-    protected $listener = [];
+    protected static $listener = [];
 
     public function getListenersForEvent($event): iterable
     {
@@ -105,11 +105,11 @@ class ObserverTree implements ObserverTreeInterface
 
         $event->setTransitionChangeState(0);
 
-        if (!isset($this->listener[$path])) {
+        if (!isset(self::$listener[$path])) {
             $this->registerListener($path, $namespace);
         }
 
-        foreach ($this->listener[$path] as $fQCN => $patience) {
+        foreach (self::$listener[$path] as $fQCN => $patience) {
             foreach ($event::getApplicableListener() as $base) {
                 if (is_subclass_of($fQCN, $base) && $this->inPhase($fQCN, $phase)) {
                     yield [$fQCN => di_get($fQCN), 'process'];
@@ -149,13 +149,13 @@ class ObserverTree implements ObserverTreeInterface
      */
     protected function registerListener(string $path, string $namespace): void
     {
-        $this->listener[$path] = [];
+        self::$listener[$path] = [];
         foreach (CompositeDir::collectListener($path, $namespace) as $className => $fQCN) {
             $patience = is_subclass_of($fQCN, SortableListener::class) ? $fQCN::getPatience() : 0;
-            $this->listener[$path][$fQCN] = $patience;
+            self::$listener[$path][$fQCN] = $patience;
         }
 
-        asort($this->listener[$path], SORT_NUMERIC);
+        asort(self::$listener[$path], SORT_NUMERIC);
     }
 
 }
