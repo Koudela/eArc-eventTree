@@ -27,27 +27,31 @@ class Handler implements HandlerInterface
         $this->event = $event;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function forward(): void
+    public function forward(): HandlerInterface
     {
         $this->event->setTransitionChangeState(self::EVENT_IS_FORWARDED);
+
+        return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function tie(): void
+    public function tie(): HandlerInterface
     {
         $this->event->setTransitionChangeState(self::EVENT_IS_TIED);
+
+        return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function terminate(): void
+    public function terminate(): HandlerInterface
     {
         $this->event->setTransitionChangeState(self::EVENT_IS_TERMINATED);
+
+        return $this;
+    }
+
+    public function kill(): HandlerInterface
+    {
+        $this->event->setTransitionChangeState(self::EVENT_IS_TERMINATED | self::EVENT_IS_TIED | self::EVENT_IS_FORWARDED);
+
+        return $this;
     }
 }

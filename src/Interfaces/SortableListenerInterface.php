@@ -11,7 +11,7 @@
 
 namespace eArc\eventTree\Interfaces;
 
-interface PhaseSpecificListener
+interface SortableListenerInterface
 {
-    public static function getPhase(): int;
+    public static function getPatience(): float;
 }

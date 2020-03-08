@@ -12,73 +12,29 @@
 namespace eArc\EventTree\Debug;
 
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
-use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
 
 /**
- * The toString() functions of Node and Observer aren't an exact match for the
- * requirements of the earc event tree package. This class can help you to debug
- * events and observer trees.
+ * This class can help you to debug events and observer trees.
  */
 abstract class Debug
 {
     /**
-     * Transforms the tree of events to a string.
-     *
-     * @param TreeEventInterface $event
-     *
-     * @return string
-     */
-    public static function toString(TreeEventInterface $event): string
-    {
-        $str = $event->getName() . ":\n";
-        $str .= self::typeToString((function() {return $this->routingType;})->call($event));
-        $str .= "  children:\n";
-        $str .= self::childrenToString($event, '    ');
-        return $str;
-    }
-
-    /**
-     * Transforms the children of a event to a string.
-     *
-     * @param TreeEventInterface $parent
-     * @param string $indent
-     *
-     * @return string
-     */
-    protected static function childrenToString(TreeEventInterface $parent, $indent = ''): string
-    {
-        $str = '';
-
-        foreach ($parent->getChildren() as $name => $event)
-        {
-            $str .= $indent . $name . ":\n";
-            $str .= self::typeToString((function() {return $this->routingType;})->call($event), $indent . '  ');
-            $str .= $indent . "  children:\n";
-            $str .= self::childrenToString($event, $indent . '    ');
-        }
-
-        return $str;
-    }
-
-    /**
-     * Transforms the type of an event to a string.
+     * Transforms the propagation type of an tree event to a string..
      *
      * @param PropagationTypeInterface $type
-     * @param string $indent
+     * @param string                   $indent
      *
      * @return string
      */
-    public static function typeToString(PropagationTypeInterface $type, $indent = ''): string
+    public static function PropagationTypeToString(PropagationTypeInterface $type, $indent = ''): string
     {
-        $treeIdentifier = $type->getTree() ? $type->getTree()->getName() : '';
         return
-            $indent . 'tree: ' . $treeIdentifier . "\n" .
-            $indent . 'start: [' . implode(', ', $type->getStart()) . "]\n" .
-            $indent . 'destination: [' . implode(', ', $type->getDestination()) . "]\n" .
-            $indent . 'maxDepth: ' . $type->getMaxDepth() ?? 'null' . "\n";
+            $indent.'dispatcher:'.di_static(get_class($type->getDispatcher()))."\n" .
+            $indent.'start: ['.implode(', ', $type->getStart())."]\n" .
+            $indent.'destination: ['.implode(', ', $type->getDestination())."]\n" .
+            $indent.'maxDepth: '.$type->getMaxDepth() ?? 'null'."\n";
     }
-
 
     /**
      * @param ObserverTreeInterface $observer

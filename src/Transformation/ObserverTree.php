@@ -13,9 +13,9 @@ namespace eArc\eventTree\Transformation;
 
 use eArc\EventTree\Exceptions\BaseException;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
-use eArc\eventTree\Interfaces\PhaseSpecificListener;
+use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
-use eArc\eventTree\Interfaces\SortableListener;
+use eArc\eventTree\Interfaces\SortableListenerInterface;
 use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\eventTree\Util\CompositeDir;
@@ -132,11 +132,11 @@ class ObserverTree implements ObserverTreeInterface
      */
     protected function inPhase(string $fQCN, int $phase = self::PHASE_ACCESS): bool
     {
-        if (!is_subclass_of($fQCN, PhaseSpecificListener::class)) {
+        if (!is_subclass_of($fQCN, PhaseSpecificListenerInterface::class)) {
             return true;
         }
 
-        /** @var PhaseSpecificListener $fQCN */
+        /** @var PhaseSpecificListenerInterface $fQCN */
         return 0 !== ($fQCN::getPhase() & $phase);
 
     }
@@ -151,7 +151,7 @@ class ObserverTree implements ObserverTreeInterface
     {
         self::$listener[$path] = [];
         foreach (CompositeDir::collectListener($path, $namespace) as $className => $fQCN) {
-            $patience = is_subclass_of($fQCN, SortableListener::class) ? $fQCN::getPatience() : 0;
+            $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
             self::$listener[$path][$fQCN] = $patience;
         }
 

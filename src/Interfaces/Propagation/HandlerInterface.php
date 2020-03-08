@@ -23,18 +23,32 @@ interface HandlerInterface
     /**
      * If the event is forwarded it does not activate the listeners of the
      * current observer which it has not activated yet.
+     *
+     * @return HandlerInterface
      */
-    public function forward(): void;
+    public function forward(): HandlerInterface;
 
     /**
      * If the event is tied it does not visit any observers that are not a
      * descendant of the observer node the event is currently on.
+     *
+     * @return HandlerInterface
      */
-    public function tie(): void;
+    public function tie(): HandlerInterface;
 
     /**
      * If the event is terminated it does not visit the descendants of the
      * current observer node.
+     *
+     * @return HandlerInterface
      */
-    public function terminate(): void;
+    public function terminate(): HandlerInterface;
+
+    /**
+     * No listener is called hereafter. Is the same a calling forward, tie and terminate
+     * in a row.
+     *
+     * @return HandlerInterface
+     */
+    public function kill(): HandlerInterface;
 }
