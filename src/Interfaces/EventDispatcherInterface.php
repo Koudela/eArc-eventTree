@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Interfaces;
+namespace eArc\EventTree\Interfaces;
 
 use Psr\EventDispatcher\EventDispatcherInterface as BaseInterface;
 

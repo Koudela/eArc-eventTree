@@ -12,7 +12,7 @@
 namespace eArc\EventTree\Debug;
 
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
-use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
+use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 
 /**
  * This class can help you to debug events and observer trees.

@@ -9,16 +9,16 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Transformation;
+namespace eArc\EventTree\Transformation;
 
 use eArc\EventTree\Exceptions\BaseException;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
-use eArc\eventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
-use eArc\eventTree\Interfaces\SortableListenerInterface;
-use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
-use eArc\eventTree\Util\CompositeDir;
+use eArc\EventTree\Util\CompositeDir;
 
 class ObserverTree implements ObserverTreeInterface
 {
@@ -100,7 +100,7 @@ class ObserverTree implements ObserverTreeInterface
      */
     protected function iterateNode(TreeEventInterface $event, int $phase = self::PHASE_ACCESS): iterable
     {
-        $path = $event->getTransitionInfo()->getCurrentPathFormatted('/');
+        $path = './'.$event->getTransitionInfo()->getCurrentPathFormatted('/');
         $namespace = $event->getTransitionInfo()->getCurrentPathFormatted('\\');
 
         $event->setTransitionChangeState(0);
@@ -112,7 +112,7 @@ class ObserverTree implements ObserverTreeInterface
         foreach (self::$listener[$path] as $fQCN => $patience) {
             foreach ($event::getApplicableListener() as $base) {
                 if (is_subclass_of($fQCN, $base) && $this->inPhase($fQCN, $phase)) {
-                    yield [$fQCN => di_get($fQCN), 'process'];
+                    yield [di_get($fQCN), 'process'];
 
                     break;
                 };

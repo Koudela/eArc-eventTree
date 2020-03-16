@@ -11,7 +11,7 @@
 
 namespace eArc\EventTree\Interfaces\Propagation;
 
-use eArc\eventTree\Interfaces\EventDispatcherInterface;
+use eArc\EventTree\Interfaces\EventDispatcherInterface;
 
 /**
  * Defines an immutable four dimensional event routing type.

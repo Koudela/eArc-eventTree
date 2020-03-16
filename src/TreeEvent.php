@@ -15,11 +15,11 @@ use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\EventTree\Exceptions\IsNotDispatchedException;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
-use eArc\eventTree\Interfaces\Transformation\TransitionInfoInterface;
+use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\Handler;
 use eArc\EventTree\Propagation\PropagationType;
-use eArc\eventTree\Transformation\TransitionInfo;
+use eArc\EventTree\Transformation\TransitionInfo;
 use eArc\Observer\Interfaces\ListenerInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
 

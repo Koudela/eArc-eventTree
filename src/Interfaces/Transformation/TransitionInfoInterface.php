@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Interfaces\Transformation;
+namespace eArc\EventTree\Interfaces\Transformation;
 
 interface TransitionInfoInterface
 {

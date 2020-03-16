@@ -15,7 +15,7 @@ use eArc\EventTree\Exceptions\IsDispatchedException;
 use eArc\EventTree\Exceptions\IsNotDispatchedException;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
-use eArc\eventTree\Interfaces\Transformation\TransitionInfoInterface;
+use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\Observer\Interfaces\EventInterface;
 
 /**

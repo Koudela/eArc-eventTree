@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Interfaces\Transformation;
+namespace eArc\EventTree\Interfaces\Transformation;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\TreeEventInterface;

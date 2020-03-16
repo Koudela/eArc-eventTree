@@ -9,12 +9,12 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree;
+namespace eArc\EventTree;
 
-use eArc\eventTree\Interfaces\EventDispatcherInterface;
-use eArc\eventTree\Interfaces\Transformation\ObserverTreeInterface;
+use eArc\EventTree\Interfaces\EventDispatcherInterface;
+use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
-use eArc\eventTree\Transformation\ObserverTree;
+use eArc\EventTree\Transformation\ObserverTree;
 
 class EventDispatcher implements EventDispatcherInterface
 {

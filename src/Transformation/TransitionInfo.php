@@ -9,9 +9,9 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Transformation;
+namespace eArc\EventTree\Transformation;
 
-use eArc\eventTree\Interfaces\Transformation\TransitionInfoInterface;
+use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 
 class TransitionInfo implements TransitionInfoInterface
 {

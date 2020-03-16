@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\eventTree\Util;
+namespace eArc\EventTree\Util;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 
@@ -24,12 +24,13 @@ class CompositeDir
     {
         $dirs = [];
 
-        chdir(di_param('earc.project_dir'));
-        chdir(di_param('earc.event_tree.root_directory'));
+        chdir(di_param('earc.vendor_directory'));
 
         if (!is_dir($path)) {
             return $dirs;
         }
+
+        chdir($path);
 
         foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
             if ('.' !== $fileName && '..' !== $fileName && is_dir($fileName)) {
@@ -54,6 +55,7 @@ class CompositeDir
 
         foreach (di_param('earc.event_tree.directories') as $rootDir => $rootNamespace)
         {
+            chdir(di_param('earc.vendor_directory'));
             chdir($rootDir);
 
             if (is_dir($path))
@@ -69,7 +71,7 @@ class CompositeDir
         }
 
         if (null === $listener) {
-            throw new InvalidObserverNodeException(sprintf('Path %s is no valid directory for an observer node.', $path));
+            throw new InvalidObserverNodeException(sprintf('Path `%s` is no valid directory for an observer node.', $path));
         }
 
         return $listener;

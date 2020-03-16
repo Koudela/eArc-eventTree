@@ -11,8 +11,8 @@
 
 namespace eArc\EventTree\Propagation;
 
-use eArc\eventTree\EventDispatcher;
-use eArc\eventTree\Interfaces\EventDispatcherInterface;
+use eArc\EventTree\EventDispatcher;
+use eArc\EventTree\Interfaces\EventDispatcherInterface;
 use eArc\EventTree\Interfaces\Propagation\PropagationTypeInterface;
 
 /**
