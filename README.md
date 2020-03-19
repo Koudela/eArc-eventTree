@@ -1,7 +1,4 @@
-[event](doc/event.md) | [listener](doc/listener.md) | 
-[observer](doc/observer.md) | [tree](doc/tree.md) | [routing](doc/routing.md)
-
-# eArc/eventTree
+# eArc-eventTree
 
 Developer of PHP-applications might know the debug hell that lives right beside
 the massive use of event-listeners. The fancy thing is most JS-developer do not 
@@ -21,92 +18,332 @@ As of all eArc packages one of its driving ideas is to make your code as
 explicit and easy to understand as possible without imposing to much 
 restrictions on it.    
 
-## Installation
+## Install
+
 ```bash
 $ composer install earc/event-tree
 ```
 
-## The event tree
+## Bootstrap
 
-The event trees live in your project directory. It is possible to import and
-even extend trees from other projects.  
+earc/observer uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
+injection. 
+
+```php
+use eArc\DI\DI;
+
+DI::init();
+```
+
+Place the above code in the section where your script/framework is 
+bootstrapped.
+
+## Configure
+
+The event trees live in a folder in your project directory. It is possible to 
+import and even extend trees from other projects. Hence the 
+`earc.vendor_directory` parameter has to be set.
+
+```php
+di_import_param(['earc' => ['vendor_directory' => __DIR__.'/../../vendor/']]);
+```
 
 Best practice is to have only one directory which is the root for all your event
 trees. This constrain ensures that every developer who is or will be engaged in 
 your project can easily keep track of all event trees.
 
-Each event tree maps to a directory tree. Each directory maps to an event
-observer. A class which implements the interface 
-`eArc\eventTree\Interfaces\EventListenerInterface` and which corresponding class 
-file lives in such an observer directory gets attached to the observer.  
+```php
+$directories = di_param('earc.event_tree.directories', []);
+$directories['../path/to/your/eventTree/root/folder'] = '\\your\\eventTree\\root\\namespace'; 
+di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+```
 
-Events travel from the root of the event tree to its leafs.
+The path of the root folder has to be relative to your projects vendor directory.
 
-Thus an event tree is a observer tree whose leafs are populated by listeners and
-that gets traveled by events.
+## Use
+
+Since we use the native tree data structures of the modern operating systems to
+organize our code it is a tiny step to put them to use to decouple code and
+define data processing structures.
+
+It is as easy as it can get.
+ 
+1. Choose a directory where all your observer trees should live in. 
+([read `configure` for more details](#configure))
+2. For every observer tree create an directory beneath the tree root.
+3. Expand the tree root with as many subdirectories as you need observer leafs.
+4. Save your listener in the directory where it should get attached to the 
+observer. ([read `the listener` for more details](#the-listener))
+
+
+### The observer tree
+
+Every event tree is in fact an observer tree. Every single directory maps to an 
+event observer. A class which implements the interface 
+`eArc\Observer\Interfaces\ListenerInterface` and which corresponding class file 
+lives in such an observer directory gets attached to the observer. 
+([read `the listener` for more details](#the-listener))
+
+Events travel from the root of the tree to its leafs.
+
+Thus an event tree is an observer tree whose leafs are populated by listeners 
+and is traveled by events in a well defined manner.
+([read `the event` for more details](#the-event))
 
 If you name your observer leafs and listeners in an explicit way, all you need 
 to get a basic understanding of the event tree is hitting the command `tree` in
 the trees root directory.
 
-## The event
+### The listener
 
-Every event is tied to an event tree. 
-
-Events can be configured to restrict their traveling by three parameter `start`, 
-`destination` and `maxDepth`. Each event travels from the `start` observer 
-vertice to the `destination` observer vertice in a linear manner. Thereafter it 
-behaves as if it performs a wide search on the remaining tree. `maxDepth` 
-restricts the overall travel to vertices with a maximal distance from the 
-`start` vertice of `maxDepth`. If `maxDepth` is configured to `null` there is 
-no restriction. If `destination` is `null` the `start` vertice is also the 
-`destination` vertice. And if `start` is `null` the event starts at the root of 
-the observer tree.
-
-This gives birth to four event phases:
-- `start` - the event has not traveled yet.
-- `before`- the event is between its `start` and its `destination` vertice.
-- `destination` - the event is on its `destination` vertice. (If `destination`
-    is null there is no `destination` phase.)
-- `beyond` - the event has traveled beyond its `destination` vertice.
-
-Listeners can listen to one, two, three or all four event phases.
-
-If a dependency container is injected into the `eventDispatcherFactory` each
-event has a getter for this container, such that the listeners can be used as 
-front controllers. ([eArc/router](http://github.com/Koudela/eArc-router) will 
-map http requests using event trees as of v1.0)
-
-## The listener
-
-The listener can attach a payload to an event and read the payload other 
+The event listener is the bridge between the event and the business logic of 
+your application. It can attach a payload to an event and read the payload other 
 listener have attached. By this you can wire your application through one or 
 more event trees.
 
-You can determine by the constant `EARC_LISTENER_PATIENCE` the order in which 
-the listener get called by their observer.
+Like a front controller is attached to a route/request an event listener is 
+attached to an observer/event. Best practice is to write small listener that
+consists only of logic concerning the application flow. No business logic or 
+persistence calls should happen in an event listener.
 
-The event phase(s) the listener should listen to can be expressed by the 
-constant `EARC_LISTENER_TYPE`. You can use the `EventRouter` constants
-`PHASE_START`, `PHASE_BEFORE`, `PHASE_DESTINATION` and `PHASE_BEYOND` in a 
-bit field (concat them by `|`). If the constant `EARC_LISTENER_TYPE` is not used 
-the `PHASE_ACCESS` is used, which is a shortcut for listening to all four event 
-phases. 
+Each Listener has to implement the `ListenerInterface`.
 
-Listeners can manipulate the traveling of events. They can silence them by
-`$event.silence()`, such that no listener in the same directory can
-listen to that specific event anymore.  They can tie them to their directory
-by `$event.tie()`, such that the tied event can only travel the 
-tree where the current observer vertice is the root. They can stop its travel on 
-this tree part by `$event.terminate()`. And they can even kill the event by
-`$event.kill()`. 
+```php
+use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
 
-## Building trees at runtime
+class MyListener implements ListenerInterface
+{
+    public function process(EventInterface $event): void
+    {
+        // The listener logic goes here...
+    }
+}
+```
 
-If you use event trees as complex iterators it may not be possible to restrict
-yourself to predefined tree structures. In this case (and maybe others) where it 
-is not beneficial to stick to close to the explicit programming paradigm you
-are encouraged to use the `ObserverTree` and `ObserverLeaf` classes directly.  
+It gets autoloaded and initialised on the first visit of an event.
+
+### The event
+
+Every event is tied to the observer tree described above. Events have to inherit 
+from the `TreeEvent`.
+
+```php
+use eArc\EventTree\TreeEvent;
+
+class MyEvent extends TreeEvent
+{
+    // Code to handle information specific for your event...
+}
+```
+
+Every event is initialized with a `PropagationType`.
+
+```php
+use eArc\EventTree\Propagation\PropagationType;
+
+$event = new MyEvent(new PropagationType());
+``` 
+
+### The propagation Type
+
+The propagation type restricts the traveling of the event.
+
+The first parameter `start` determines the starting point in the directory tree 
+relative to the events tree root. For example given a value of 
+`['product','export']` the event would start in the folder 
+`event-tree-root/product/export`. If the `start` is an empty array the event
+starts at the root of the event tree.
+
+The second parameter `destination` determines how far the event should travel in 
+a linear manner. For example given a value of 
+`['init','collect','process','finish']` the event would travel from the `../export`
+folder to the `../export/init`, to the `../export/init/collect`, to the
+`../export/init/collect/process` and thereafter to the 
+`../export/init/collect/process/finish` folder. If the `destination` is an empty
+array the `start` folder is also the `destination` folder.
+
+After the `destination` the event behaves as if it performs a a wide search on 
+the remaining tree. 
+
+The last parameter `maxDepth` restricts the overall travel to folder/vertices 
+with a maximal distance from the `start` folder/vertice of `maxDepth`. 
+If `maxDepth` is configured to `null` there is no restriction. For example if 
+`0` is supplied as argument the event would die after visiting the starting 
+observer leaf.       
+
+The `PropagationType` is immutable. Thus these criteria cannot be altered once 
+the event build. They define the four [traveling phases](#the-traveling-phases).
+
+### Dispatching Events
+
+Every `TreeEvent` comes with a `dispatch()`method. You do not need a dispatcher.
+It is called upon internally by the dependency injection magic of
+[earc/di](https://github.com/Koudela/eArc-di).
+
+Note: You can dispatch an events instance only once.
+
+## Advanced Usage
+
+### Patience
+
+If a listener implements the `SortableListenerInterface` it can define its
+patience as a float. (Otherwise it has a patience of 0.)
+
+```php
+use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+
+class MyListener implements ListenerInterface, SortableListenerInterface
+{
+    public function process(EventInterface $event): void
+    {
+        // The listener logic goes here...
+    }
+
+    public static function getPatience() : float
+    {
+        return -12.7;
+    }
+
+}
+```
+
+As smaller the patience the sooner the listener is called.
+
+Hint: If two listener have the same patience you cannot rely on the order they 
+are called.    
+
+### Listening to specific traveling phases
+
+The `PropagationType` gives birth to four event phases:
+- `start` - the event has not traveled yet.
+- `before`- the event is between its `start` and its `destination` vertice.
+- `destination` - the event is on its `destination` vertice. 
+- `beyond` - the event has traveled beyond its `destination` vertice.
+
+If `destination` is empty there is no `destination` phase nor a `beyond` phase.
+Same applies if the `depth` parameter smaller than the `destinations` length.
+
+Listeners implementing the `PhaseSpecificListenerInterface` can listen to one, 
+two or three instead of all four event phases. Use the `ObserverTreeInterface` 
+constants `PHASE_START`, `PHASE_BEFORE`, `PHASE_DESTINATION` and `PHASE_BEYOND`.
+If you listen to more then one use a bit field (concat them by `|`). 
+
+```php
+use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
+use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
+
+class MyListener implements ListenerInterface, PhaseSpecificListenerInterface
+{
+    public function process(EventInterface $event): void
+    {
+        // The listener logic goes here...
+    }
+
+    public static function getPhase() : int
+    {
+        // Listening to the phases destination and beyond only.
+        // Keep in mind it is only one pipe. It is a bit field not a boolean.
+        return ObserverTreeInterface::PHASE_DESTINATION | ObserverTreeInterface::PHASE_BEYOND;
+    }
+
+}
+```
+
+If the `PhaseSpecificListenerInterface` is not used the `PHASE_ACCESS` is assumed, 
+which is a shortcut for listening to all four event phases. 
+
+### Manipulating the traveling of dispatched events
+
+Listeners can not change the immutable `PropagationType`, but they can restrict
+the traveling of events. This comes handy if you want to implement the chain of 
+responsibility pattern or similar using an event tree. 
+
+Each listener that is called by its corresponding observer leaf can inhibit the 
+further traveling of the event by four methods of the event.
+
+They can stop the event from traveling any further by killing it.
+
+```php
+use eArc\Observer\Interfaces\ListenerInterface;
+use eArc\Observer\Interfaces\EventInterface;
+
+class MyListener implements ListenerInterface
+{
+    public function process(EventInterface $event): void
+    {
+        // ...
+        $event->kill();
+        // ...
+    }
+}
+```
+
+Even the remaining listeners of the same directory won't get called.  
+
+`silence()` forces the event to leave the current observer and discards its 
+listener stack.  
+
+```php
+        // ...
+        $event->silence();
+        // ...
+```
+
+The event travels to the next leaf (if any) directly. No listener in the same 
+directory can listen to that specific event anymore.  
+
+`terminate()` stops the event from visiting the leafs that are direct or indirect
+children of the observer leaf.
+
+```php
+        // ...
+        $event->terminate();
+        // ...
+```
+
+But the current observer does not stop his work on the current listener stack.
+
+Keep in mind in the `beyond` phase there are active observer who are not children
+oder parents of the current observer.
+
+You can dismiss them by calling `tie()`.
+
+```php
+        // ...
+        $event->tie();
+        // ...
+```
+
+The event is tied to the current observer and its children. The events travel on
+any neighboring leafs is stopped.
+
+### Extending (third party) observer trees
+
+
+
+If you use observer trees for a library there are scenarios where a user of 
+the library need to use, extend or overwrite the supplied observer trees. There
+is no suitable way to write into the vendor directory. To overcome this the 
+`ObserverTreeFactory` provides a way to inherit trees from other places and
+to blacklist listeners.
+
+Every directory defined tree has a directory he lives in and a namespace
+for autoloading. If an array containing arrays with these two parameters are
+supplied to the factories constructor as third argument the corresponding
+event trees will be loaded if the main event tree directory has at least the
+root of the tree in his directory. Trees with the same root identity are
+composed to one tree.
+
+Listeners in corresponding trees will have different namespaces due to the 
+autoloading necessity and can therefore not be overwritten. To unregister them
+add their fully qualified class name or their container name as key to the
+ignore array which is the fourth argument of the `ObserverTreeFactory`. 
+
 
 ## Conclusion
 
@@ -117,23 +354,17 @@ objects decoupled doing what objects can do best: handling state.
 Of course you can stay to your architectural style as well, use your preferred 
 framework furthermore and add event trees as an explicit way of event handling.
 
-## Example
+
+
+
+## Old
 
 As always you can use the composer autoloader.
 ```php
 include 'path/to/your/project/dir/' . 'vendor/autoload.php';
 ``` 
 
-First of all you need an `ObserverTreeFactory`.
-
-```php
-use eArc\ObserverTree\ObserverTreeFactory;
-
-$OTF = new ObserverTreeFactory(
-    '/absolute/path/to/your/eventTree/root', 
-    'your\\eventTree\\root\\namespace'
-);
-```
+...
 
 Now your code knows where your event trees live. You can use `toString()` to 
 debug any tree. 
@@ -142,61 +373,4 @@ debug any tree.
 echo $OTF->get('myFirstObserverTree')->toString();
 ```
 
-Inject the `ObserverTreeFactory` into an `EventDispatcherFactory`. As second 
-argument you may wish to inject a dependency injection container.  
- 
-```php
-use eArc\eventTree\Event\EventDispatcherFactory;
-
-$EDF = new EventDispatcherFactory($OTF, null);
-```
-
-`build()` gives you a new `EventDispatcher`. You can configure the event which
-is going to be dispatched with `tree()`, `start()`, `destination()` and 
-`maxDepth()` in any order you like. And then dispatch it with `dispatch()`; 
-
-
-```php
-$EDF->build()->tree('myFirstObserverTree')->maxDepth(null)->dispatch();
-```
-
-A listener may look like this.
-
-```php
-# /absolute/path/to/your/eventTree/root/myFirstObserverTree/preExport/myFooListener.php
-
-namespace your\eventTree\Namespace\myFirstObserverTree\preExport;
-
-use eArc\eventTree\Event;
-use eArc\eventTree\Interfaces\EventListenerInterface;
-use eArc\eventTree\Propagation\EventRouter;
-
-class MyFooListener implements EventListener
-{
-    const EARC_LISTENER_PATIENCE = 20;
-    const EARC_LISTENER_TYPE = EventRouter::PHASE_START | EventRouter::PHASE_DESTINATION;
-    const EARC_LISTENER_CONTAINER_ID = 'my_project.my_foo_listener';
-
-    public function processEvent(Event $event)
-    {
-        ...
-    }
-}
-```
-
-Every listener can trigger new events. `$event->new()` is a shortcut for  
-`$event->getEventDispatcherFactory->build()` and `$event->clone()` for
-`$event->getEventDispatcherFactory->build($event)`. Both are giving an 
-`EventDispatcher` back. You can use the `EventDispatcher` to configure and
-dispatch the event as before. 
-
-It might be worth to mention that the trees get initialized when they first get
-called. eArc/eventTree will not construct any of your observer or listener
-classes before.
-
-[event](doc/event.md) | [listener](doc/listener.md) | 
-[observer](doc/observer.md) | [tree](doc/tree.md) | [routing](doc/routing.md)
-
-#TODO
-- add detailed object documentation
-- add Behat
+- add TESTS

@@ -21,7 +21,7 @@ interface HandlerInterface
     const EVENT_IS_TERMINATED = 4;
 
     /**
-     * If the event is forwarded it does not activate the listeners of the
+     * If the event is forwarded. It does not activate the listeners of the
      * current observer which it has not activated yet.
      *
      * @return HandlerInterface
@@ -29,7 +29,7 @@ interface HandlerInterface
     public function forward(): HandlerInterface;
 
     /**
-     * If the event is tied it does not visit any observers that are not a
+     * If the event is tied. It does not visit any observers that are not a
      * descendant of the observer node the event is currently on.
      *
      * @return HandlerInterface
@@ -37,7 +37,7 @@ interface HandlerInterface
     public function tie(): HandlerInterface;
 
     /**
-     * If the event is terminated it does not visit the descendants of the
+     * If the event is terminated. It does not visit the descendants of the
      * current observer node.
      *
      * @return HandlerInterface
