@@ -11,6 +11,7 @@
 
 namespace eArc\EventTree;
 
+use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\EventDispatcherInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
@@ -28,6 +29,13 @@ class EventDispatcher implements EventDispatcherInterface
             : di_get(ObserverTree::class);
     }
 
+    /**
+     * @param TreeEventInterface $event
+     *
+     * @return TreeEventInterface
+     *
+     * @throws InvalidObserverNodeException
+     */
     public function dispatch($event): TreeEventInterface
     {
         foreach ($this->observerTree->getListenersForEvent($event) as $callable) {

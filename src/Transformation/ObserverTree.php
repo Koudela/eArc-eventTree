@@ -23,7 +23,21 @@ use eArc\EventTree\Util\CompositeDir;
 class ObserverTree implements ObserverTreeInterface
 {
     protected static $listener = [];
+    protected $blacklistedListener;
 
+    public function __construct()
+    {
+        $this->blacklistedListener = di_param('earc.event_tree.blacklist', []);
+    }
+
+    /**
+     * @param TreeEventInterface $event
+     *
+     * @return iterable
+     *
+     * @throws BaseException
+     * @throws InvalidObserverNodeException
+     */
     public function getListenersForEvent($event): iterable
     {
         if (!is_subclass_of($event, TreeEventInterface::class)) {
@@ -62,6 +76,14 @@ class ObserverTree implements ObserverTreeInterface
         }
     }
 
+    /**
+     * @param TreeEventInterface $event
+     * @param int $maxDepth
+     *
+     * @return iterable
+     *
+     * @throws InvalidObserverNodeException
+     */
     protected function iterateNodeRecursive(TreeEventInterface $event, int $maxDepth): iterable
     {
         foreach (CompositeDir::getSubDirNames($event->getTransitionInfo()->getCurrentPathFormatted('/')) as $name) {
@@ -151,8 +173,10 @@ class ObserverTree implements ObserverTreeInterface
     {
         self::$listener[$path] = [];
         foreach (CompositeDir::collectListener($path, $namespace) as $className => $fQCN) {
-            $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
-            self::$listener[$path][$fQCN] = $patience;
+            if (!isset($this->blacklistedListener[$fQCN])) {
+                $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
+                self::$listener[$path][$fQCN] = $patience;
+            }
         }
 
         asort(self::$listener[$path], SORT_NUMERIC);

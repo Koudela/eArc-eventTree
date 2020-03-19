@@ -18,6 +18,27 @@ As of all eArc packages one of its driving ideas is to make your code as
 explicit and easy to understand as possible without imposing to much 
 restrictions on it.    
 
+## Table of contents
+ 
+ - [Install](#install)
+ - [Bootstrap](#bootstrap)
+ - [Configure](#configure)
+ - [Use](#use)
+   - [The observer tree](#the-observer-tree)
+   - [The listener](#the-listener)
+   - [The event](#the-event)
+   - [The propagation Type](#the-propagation-type)
+   - [Dispatching Events](#dispatching-events)
+ - [Advanced Usage](#advanced-usage)
+   - [Patience](#patience)
+   - [Listening to specific traveling phases](#listening-to-specific-traveling-phases)
+   - [Manipulating the traveling of dispatched events](#manipulating-the-traveling-of-dispatched-events)
+   - [Extending (third party) observer trees](#extending-third-party-observer-trees)
+ - [Conclusion](#conclusion)
+ - [Releases](#releases)
+   - [Release 1.0](#release-10)
+   - [Release 0.0](#release-00)
+
 ## Install
 
 ```bash
@@ -74,7 +95,6 @@ It is as easy as it can get.
 3. Expand the tree root with as many subdirectories as you need observer leafs.
 4. Save your listener in the directory where it should get attached to the 
 observer. ([read `the listener` for more details](#the-listener))
-
 
 ### The observer tree
 
@@ -324,26 +344,50 @@ any neighboring leafs is stopped.
 
 ### Extending (third party) observer trees
 
-
-
 If you use observer trees for a library there are scenarios where a user of 
 the library need to use, extend or overwrite the supplied observer trees. There
 is no suitable way to write into the vendor directory. To overcome this the 
-`ObserverTreeFactory` provides a way to inherit trees from other places and
-to blacklist listeners.
+earc event tree provides a way to inherit trees from other places and blacklist
+listeners.
 
-Every directory defined tree has a directory he lives in and a namespace
-for autoloading. If an array containing arrays with these two parameters are
-supplied to the factories constructor as third argument the corresponding
-event trees will be loaded if the main event tree directory has at least the
-root of the tree in his directory. Trees with the same root identity are
-composed to one tree.
+Every directory defined tree has a root directory he lives in and a root namespace
+for autoloading. You can specify as many `earc.event_tree.directories` as you want.
+ 
+```php
+$directories = di_param('earc.event_tree.directories', []);
+$directories['../src/MyProject/Events/TreeRoot'] = 'MyProject\\Events\\TreeRoot';
+$directories['Framework/src/EventTreeRoot'] = 'Framework\\EventTreeRoot';
+$directories['ShopCreator/Engine/events/tree/root'] = 'ShopCE\\events\\tree\\root';
+di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+```
+
+The configured roots are seen as one big root. If there are identical paths relative
+to the root the listeners are bundled in one observer leaf.
 
 Listeners in corresponding trees will have different namespaces due to the 
 autoloading necessity and can therefore not be overwritten. To unregister them
-add their fully qualified class name or their container name as key to the
-ignore array which is the fourth argument of the `ObserverTreeFactory`. 
+add their fully qualified class name to the `earc.event_tree.blacklist`.
 
+```php
+$blacklist = di_param('earc.event_tree.blacklist', []);
+$directories['Framework\\EventTreeRoot\\Some\\Path\\SomeListener'] = true;
+$directories['Framework\\EventTreeRoot\\Some\\Other\\Path\\SomeOtherListener'] = true;
+$directories['ShopCE\\events\\tree\\root\\a\\third\\path\\to\\a\\ThirdUnwantedListener'] = true;
+di_import_param(['earc' => ['event_tree' => ['blacklist' => $blacklist]]]);
+```
+
+Hint: Listener must be blacklisted before the `ObserverTree` is build. Therefore
+as soon an event has be dispatched changes to the blacklist are not recognised
+anymore.
+
+### View Observer Tree
+
+To get a picture of a observer tree and the listener living in it use the command
+line tool `view-tree`.
+
+```shell script
+vendor/earc/event-tree/tools/view-tree 'path/tree/root/1' 'path/tree/root/2' 'path/tree/root/3'
+```
 
 ## Conclusion
 
@@ -354,23 +398,19 @@ objects decoupled doing what objects can do best: handling state.
 Of course you can stay to your architectural style as well, use your preferred 
 framework furthermore and add event trees as an explicit way of event handling.
 
+## Releases
+
+### Release 1.0
+
+- simplified syntax
+- use of earc/di as dependency injection framework
+- dropped support for building trees at runtime
+
+### Release 0.0
+
+- initial release
 
 
-
-## Old
-
-As always you can use the composer autoloader.
-```php
-include 'path/to/your/project/dir/' . 'vendor/autoload.php';
-``` 
-
-...
-
-Now your code knows where your event trees live. You can use `toString()` to 
-debug any tree. 
-
-```php
-echo $OTF->get('myFirstObserverTree')->toString();
-```
-
-- add TESTS
+TODO 
+- Implement: print trees tool.
+- Implement: TESTS.
