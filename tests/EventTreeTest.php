@@ -13,8 +13,8 @@ namespace eArc\EventTreeTests;
 
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
+use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
-use eArc\EventTree\TreeEvent;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -25,7 +25,8 @@ class EventTreeTest extends TestCase
     public function testIntegration()
     {
         $this->bootstrap();
-        $this->runSomeAssertions();
+        $this->runStartDestinationAssertions();
+        $this->runDepthAssertions();
     }
 
     /**
@@ -45,15 +46,62 @@ class EventTreeTest extends TestCase
 
         di_import_param(['earc' => ['vendor_directory' => $vendorDir]]);
 
-        $directories = di_param('earc.event_tree.directories', []);
+        $directories = []; //di_param('earc.event_tree.directories', []);
         $directories['../tests/env/treeroot'] = 'eArc\\EventTreeTests\\env\\treeroot';
         di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
-
-        (new TreeEvent(new PropagationType([], ['leaf1', 'leaf12'], 0)))->dispatch();
     }
 
-    protected function runSomeAssertions()
+    protected function runStartDestinationAssertions()
+    {
+        $event = new TestEvent(new PropagationType([], [], 0));
+        $event->dispatch();
+        $this->assertInstanceOf(TreeEventInterface::class, $event);
+        $this->assertEquals(['eArc\\EventTreeTests\\env\\treeroot\\BasicListener' => 'treeroot'], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['product', 'export'], ['init', 'collect', 'process', 'finish'], 0));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\BasicListener' => 'export',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\init\\BasicListener' => 'init',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\init\\collect\\BasicListener' => 'collect',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\init\\collect\\process\\BasicListener' => 'process',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\init\\collect\\process\\finish\\BasicListener' => 'finish',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType([], ['product', 'export'], 0));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\BasicListener' => 'treeroot',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\BasicListener' => 'product',
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\BasicListener' => 'export',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['product', 'export'], [], 0));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\product\\export\\BasicListener' => 'export',
+        ], $event->isTouchedByListener);
+
+    }
+
+    protected function runDepthAssertions()
+    {
+        $event = new TestEvent(new PropagationType([], ['init', 'collect', 'process', 'finish'], 4));
+        var_dump($event->isTouchedByListener);
+    }
+
+    protected function runMultiTreeAssertions()
     {
         di_clear_cache();
+
+        $directories = []; //di_param('earc.event_tree.directories', []);
+        $directories['../tests/env/other/otherTreeRoot'] = 'eArc\\EventTreeTests\\env\\other\\otherTreeRoot';
+        di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+    }
+
+    protected function runBlacklistAssertions()
+    {
+        di_clear_cache();
+        // di_param('...', []);
+        di_import_param(['earc' => ['event_tree' => ['blacklist' => [
+
+        ]]]]);
     }
 }

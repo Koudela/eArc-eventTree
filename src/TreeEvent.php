@@ -56,8 +56,8 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
 
         $this->handler = new Handler($this);
         $this->transitionInfo = di_is_decorated(TransitionInfoInterface::class)
-            ? di_get(TransitionInfoInterface::class)
-            : di_get(TransitionInfo::class);
+            ? di_make(TransitionInfoInterface::class)
+            : di_make(TransitionInfo::class);
         $this->propagationType->getDispatcher()->dispatch($this);
     }
 

@@ -91,10 +91,10 @@ It is as easy as it can get.
  
 1. Choose a directory where all your observer trees should live in. 
 ([read `configure` for more details](#configure))
-2. For every observer tree create an directory beneath the tree root.
-3. Expand the tree root with as many subdirectories as you need observer leafs.
-4. Save your listener in the directory where it should get attached to the 
+2. Expand this tree root with as many subdirectories as you need observer leafs.
+3. Save your listener in the directory where it should get attached to the 
 observer. ([read `the listener` for more details](#the-listener))
+4. Dispatch your events. ([read `the event` for more details](#the-event))
 
 ### The observer tree
 
@@ -112,7 +112,8 @@ and is traveled by events in a well defined manner.
 
 If you name your observer leafs and listeners in an explicit way, all you need 
 to get a basic understanding of the event tree is hitting the command `tree` in
-the trees root directory.
+the trees root directory or use the [view-tree](#view-observer-tree) command
+line tool.
 
 ### The listener
 
@@ -187,13 +188,13 @@ After the `destination` the event behaves as if it performs a a wide search on
 the remaining tree. 
 
 The last parameter `maxDepth` restricts the overall travel to folder/vertices 
-with a maximal distance from the `start` folder/vertice of `maxDepth`. 
+with a maximal distance from the `destination` folder/vertice of `maxDepth`. 
 If `maxDepth` is configured to `null` there is no restriction. For example if 
-`0` is supplied as argument the event would die after visiting the starting 
-observer leaf.       
+`0` is supplied as argument the event would die after visiting the destination 
+observer leaf.
 
 The `PropagationType` is immutable. Thus these criteria cannot be altered once 
-the event build. They define the four [traveling phases](#the-traveling-phases).
+the event build. They define the four [traveling phases](#listening-to-specific-traveling-phases).
 
 ### Dispatching Events
 
@@ -378,7 +379,8 @@ di_import_param(['earc' => ['event_tree' => ['blacklist' => $blacklist]]]);
 
 Hint: Listener must be blacklisted before the `ObserverTree` is build. Therefore
 as soon an event has be dispatched changes to the blacklist are not recognised
-anymore.
+anymore. (You can force the dependency injection system to drop references to 
+**ALL** old build objects using `di_clear_cache`.)
 
 ### View Observer Tree
 
@@ -404,6 +406,7 @@ framework furthermore and add event trees as an explicit way of event handling.
 
 - simplified syntax
 - use of earc/di as dependency injection framework
+- new `view-tree` command line tool
 - dropped support for building trees at runtime
 
 ### Release 0.0

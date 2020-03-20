@@ -25,7 +25,7 @@ class BaseListener implements ListenerInterface
     public function process(EventInterface $event): void
     {
         if ($event instanceof TestEvent) {
-            $event->isTouchedByListener[get_class($this)] = basename(__DIR__);
+            $event->isTouchedByListener[get_class($this)] = array_slice(explode('\\', get_class($this)), -2, 1)[0];
         }
     }
 }

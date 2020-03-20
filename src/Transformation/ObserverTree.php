@@ -71,7 +71,7 @@ class ObserverTree implements ObserverTreeInterface
             }
         }
 
-        foreach ($this->iterateNodeRecursive($event, $event->getPropagationType()->getMaxDepth()) as $callable) {
+        foreach ($this->iterateNodeRecursive($event, $event->getPropagationType()->getMaxDepth()-1) as $callable) {
             yield $callable;
         }
     }
@@ -86,6 +86,10 @@ class ObserverTree implements ObserverTreeInterface
      */
     protected function iterateNodeRecursive(TreeEventInterface $event, int $maxDepth): iterable
     {
+        if ($maxDepth < 0) {
+            return;
+        }
+
         foreach (CompositeDir::getSubDirNames($event->getTransitionInfo()->getCurrentPathFormatted('/')) as $name) {
             $event->getTransitionInfo()->addChild($name);
 

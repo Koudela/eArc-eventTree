@@ -42,7 +42,7 @@ class PropagationType implements PropagationTypeInterface
         $this->start = $start;
         $this->destination = $destination;
         $this->maxDepth = $maxDepth;
-        $this->__wakeup();
+        $this->initDispatcher();
     }
 
     public function getDispatcher(): EventDispatcherInterface
@@ -71,6 +71,11 @@ class PropagationType implements PropagationTypeInterface
     }
 
     public function __wakeup(): void
+    {
+        $this->initDispatcher();
+    }
+
+    protected function initDispatcher()
     {
         $this->dispatcher = di_is_decorated(EventDispatcherInterface::class)
             ? di_get(EventDispatcherInterface::class)

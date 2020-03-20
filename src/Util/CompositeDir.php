@@ -24,17 +24,20 @@ class CompositeDir
     {
         $dirs = [];
 
-        chdir(di_param('earc.vendor_directory'));
+        foreach (di_param('earc.event_tree.directories') as $rootDir => $rootNamespace) {
+            chdir(di_param('earc.vendor_directory'));
+            chdir($rootDir);
 
-        if (!is_dir($path)) {
-            return $dirs;
-        }
+            if (!is_dir($path)) {
+                return $dirs;
+            }
 
-        chdir($path);
+            chdir($path);
 
-        foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
-            if ('.' !== $fileName && '..' !== $fileName && is_dir($fileName)) {
-                $dirs[] = $fileName;
+            foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
+                if ('.' !== $fileName && '..' !== $fileName && is_dir($fileName)) {
+                    $dirs[] = $fileName;
+                }
             }
         }
 
@@ -66,7 +69,7 @@ class CompositeDir
                     $listener = [];
                 }
 
-                static::processDir($rootNamespace.'\\'.$namespace, $listener);
+                static::processDir($rootNamespace.($namespace ? '\\'.$namespace : ''), $listener);
             }
         }
 
