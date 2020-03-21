@@ -417,3 +417,5 @@ framework furthermore and add event trees as an explicit way of event handling.
 TODO 
 - Implement: print trees tool.
 - Implement: TESTS.
+
+- fix make wideSearch not deepSearch

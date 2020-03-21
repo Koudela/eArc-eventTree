@@ -71,20 +71,22 @@ class ObserverTree implements ObserverTreeInterface
             }
         }
 
-        foreach ($this->iterateNodeRecursive($event, $event->getPropagationType()->getMaxDepth()-1) as $callable) {
+        $maxDepth = $this->getNextMaxDepth($event->getPropagationType()->getMaxDepth());
+
+        foreach ($this->iterateNodeRecursive($event, $maxDepth) as $callable) {
             yield $callable;
         }
     }
 
     /**
      * @param TreeEventInterface $event
-     * @param int $maxDepth
+     * @param int|null $maxDepth
      *
      * @return iterable
      *
      * @throws InvalidObserverNodeException
      */
-    protected function iterateNodeRecursive(TreeEventInterface $event, int $maxDepth): iterable
+    protected function iterateNodeRecursive(TreeEventInterface $event, ?int $maxDepth): iterable
     {
         if ($maxDepth < 0) {
             return;
@@ -101,8 +103,8 @@ class ObserverTree implements ObserverTreeInterface
                 $isTied = true;
             }
 
-            if ($maxDepth > 0 && 0 === ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TERMINATED)) {
-                foreach ($this->iterateNodeRecursive($event, $maxDepth-1) as $callable) {
+            if ((null === $maxDepth || $maxDepth > 0) && 0 === ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TERMINATED)) {
+                foreach ($this->iterateNodeRecursive($event, $this->getNextMaxDepth($maxDepth)) as $callable) {
                     yield $callable;
                 }
             }
@@ -113,6 +115,11 @@ class ObserverTree implements ObserverTreeInterface
                 break;
             }
         }
+    }
+
+    protected function getNextMaxDepth(?int $maxDepth)
+    {
+        return null === $maxDepth ? null : $maxDepth -1;
     }
 
 

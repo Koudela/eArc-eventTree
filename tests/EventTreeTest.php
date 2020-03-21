@@ -83,7 +83,8 @@ class EventTreeTest extends TestCase
 
     protected function runDepthAssertions()
     {
-        $event = new TestEvent(new PropagationType([], ['init', 'collect', 'process', 'finish'], 4));
+        $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], null));
+        $event->dispatch();
         var_dump($event->isTouchedByListener);
     }
 
