@@ -27,6 +27,32 @@ di_import_param(['earc' => [
 ]]);
 
 
+function eventPhasesToString(int $eventPhases): string
+{
+    if (ObserverTree::PHASE_ACCESS === $eventPhases) {
+        return 'access';
+    }
+
+    $arr = [];
+
+    if (ObserverTree::PHASE_START & $eventPhases) {
+        $arr[] = 'start';
+    }
+
+    if (ObserverTree::PHASE_BEFORE & $eventPhases) {
+        $arr[] = 'before';
+    }
+
+    if (ObserverTree::PHASE_DESTINATION & $eventPhases) {
+        $arr[] = 'destination';
+    }
+
+    if (ObserverTree::PHASE_BEYOND & $eventPhases) {
+        $arr[] = 'beyond';
+    }
+
+    return implode(' | ', $arr);
+}
 
 
 function iteratePath($path, $namespace, $indent)
@@ -39,7 +65,7 @@ function iteratePath($path, $namespace, $indent)
 
         foreach (CompositeDir::collectListener($newPath, $newNamespace) as $listener) {
             echo str_pad('', $indent*4+2, '    ').'- ';
-            $phase = is_subclass_of($listener, PhaseSpecificListenerInterface::class) ? $listener::getPhase() : ObserverTree::PHASE_ACCESS;
+            $phase = eventPhasesToString(is_subclass_of($listener, PhaseSpecificListenerInterface::class) ? $listener::getPhase() : ObserverTree::PHASE_ACCESS);
             $patience = is_subclass_of($listener, SortableListenerInterface::class) ? $listener::getPatience() : 0;
             echo "[$phase, $patience] ".$listener."\n";
         }
