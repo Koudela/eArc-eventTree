@@ -418,7 +418,5 @@ framework furthermore and add event trees as an explicit way of event handling.
 
 - initial release
 
-
 TODO 
-- ParameterKey as Const 
 - Implement: print trees tool.

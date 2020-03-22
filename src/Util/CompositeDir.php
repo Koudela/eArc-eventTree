@@ -12,8 +12,9 @@
 namespace eArc\EventTree\Util;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
+use eArc\EventTree\Interfaces\ParameterInterface;
 
-class CompositeDir
+class CompositeDir implements ParameterInterface
 {
     /**
      * @param string $path
@@ -24,8 +25,8 @@ class CompositeDir
     {
         $dirs = [];
 
-        foreach (di_param('earc.event_tree.directories') as $rootDir => $rootNamespace) {
-            chdir(di_param('earc.vendor_directory'));
+        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace) {
+            chdir(di_param(ParameterInterface::VENDOR_DIR));
             chdir($rootDir);
 
             if (!is_dir($path)) {
@@ -58,9 +59,9 @@ class CompositeDir
     {
         $listener = null;
 
-        foreach (di_param('earc.event_tree.directories') as $rootDir => $rootNamespace)
+        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace)
         {
-            chdir(di_param('earc.vendor_directory'));
+            chdir(di_param(ParameterInterface::VENDOR_DIR));
             chdir($rootDir);
 
             if (is_dir($path))

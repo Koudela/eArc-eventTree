@@ -13,6 +13,7 @@ namespace eArc\EventTree\Transformation;
 
 use eArc\EventTree\Exceptions\BaseException;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
+use eArc\EventTree\Interfaces\ParameterInterface;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
@@ -21,14 +22,14 @@ use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Util\CompositeDir;
 
-class ObserverTree implements ObserverTreeInterface
+class ObserverTree implements ObserverTreeInterface, ParameterInterface
 {
     protected $listener = [];
     protected $blacklistedListener;
 
     public function __construct()
     {
-        $this->blacklistedListener = di_param('earc.event_tree.blacklist', []);
+        $this->blacklistedListener = di_param(ParameterInterface::BLACKLIST, []);
     }
 
     /**
