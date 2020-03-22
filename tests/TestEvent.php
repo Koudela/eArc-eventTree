@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -9,11 +9,14 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\EventTreeTests;
 
-/**
- * The event is dispatched already.
- */
-class IsDispatchedException extends BaseException
+use eArc\EventTree\TreeEvent;
+
+class TestEvent extends TreeEvent
 {
+    /** @var string[] the fully qualified class names */
+    public $isTouchedByListener = [];
+
+    public $testHandlerAssertions = false;
 }

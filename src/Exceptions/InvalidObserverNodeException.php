@@ -12,8 +12,8 @@
 namespace eArc\EventTree\Exceptions;
 
 /**
- * The event is dispatched already.
+ * Event is build with an invalid destination.
  */
-class IsDispatchedException extends BaseException
+class InvalidObserverNodeException extends BaseException
 {
 }

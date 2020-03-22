@@ -11,9 +11,11 @@
 
 namespace eArc\EventTree\Exceptions;
 
+use Exception;
+
 /**
- * The event is dispatched already.
+ * Generic event tree exception.
  */
-class IsDispatchedException extends BaseException
+class BaseException extends Exception
 {
 }

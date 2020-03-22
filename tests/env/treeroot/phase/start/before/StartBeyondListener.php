@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -9,11 +9,8 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\EventTreeTests\env\treeroot\phase\start\before;
 
-/**
- * The event is dispatched already.
- */
-class IsDispatchedException extends BaseException
+class StartBeyondListener extends \eArc\EventTreeTests\env\treeroot\phase\start\StartBeyondListener
 {
 }

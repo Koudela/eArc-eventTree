@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -9,11 +9,11 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\EventTree\Interfaces;
 
-/**
- * The event is dispatched already.
- */
-class IsDispatchedException extends BaseException
+interface ParameterInterface
 {
+    const VENDOR_DIR = 'earc.vendor_directory';
+    const ROOT_DIRECTORIES = 'earc.event_tree.directories';
+    const BLACKLIST = 'earc.event_tree.blacklist';
 }

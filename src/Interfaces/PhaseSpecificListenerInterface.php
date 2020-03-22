@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * event tree component
@@ -9,11 +9,9 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTree\Exceptions;
+namespace eArc\EventTree\Interfaces;
 
-/**
- * The event is dispatched already.
- */
-class IsDispatchedException extends BaseException
+interface PhaseSpecificListenerInterface
 {
+    public static function getPhase(): int;
 }

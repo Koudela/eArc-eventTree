@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - event tree component",
     "type": "library",
     "license": "MIT",
-    "version": "0.0",
+    "version": "1.0",
     "authors": [
         {
             "name": "Thomas Koudela",
@@ -14,15 +14,17 @@
     "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "earc/event": "^0.0",
-        "earc/observer-tree": "^0.0"
+        "psr/event-dispatcher": "^1.0",
+        "earc/di": "^2.1",
+        "earc/observer": "^1.0.3"
     },
     "autoload": {
         "psr-4" : {
-            "eArc\\EventTree\\" : "src"
+            "eArc\\EventTree\\" : "src",
+            "eArc\\EventTreeTests\\" : "tests"
         }
     },
     "require-dev": {
-        "behat/behat": "^3.5"
+        "phpunit/phpunit": "^7.5"
     }
 }
