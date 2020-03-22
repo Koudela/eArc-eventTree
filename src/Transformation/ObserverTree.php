@@ -23,7 +23,7 @@ use eArc\EventTree\Util\CompositeDir;
 
 class ObserverTree implements ObserverTreeInterface
 {
-    protected static $listener = [];
+    protected $listener = [];
     protected $blacklistedListener;
 
     public function __construct()
@@ -199,11 +199,11 @@ class ObserverTree implements ObserverTreeInterface
 
         $event->setTransitionChangeState(0);
 
-        if (!isset(self::$listener[$path])) {
+        if (!isset($this->listener[$path])) {
             $this->registerListener($path, $namespace);
         }
 
-        foreach (self::$listener[$path] as $fQCN => $patience) {
+        foreach ($this->listener[$path] as $fQCN => $patience) {
             foreach ($event::getApplicableListener() as $base) {
                 if (is_subclass_of($fQCN, $base) && $this->inPhase($fQCN, $phase)) {
                     yield [di_get($fQCN), 'process'];
@@ -244,15 +244,15 @@ class ObserverTree implements ObserverTreeInterface
      */
     protected function registerListener(string $path, string $namespace): void
     {
-        self::$listener[$path] = [];
+        $this->listener[$path] = [];
         foreach (CompositeDir::collectListener($path, $namespace) as $className => $fQCN) {
             if (!isset($this->blacklistedListener[$fQCN])) {
                 $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
-                self::$listener[$path][$fQCN] = $patience;
+                $this->listener[$path][$fQCN] = $patience;
             }
         }
 
-        asort(self::$listener[$path], SORT_NUMERIC);
+        asort($this->listener[$path], SORT_NUMERIC);
     }
 
 }

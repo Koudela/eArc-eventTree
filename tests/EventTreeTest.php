@@ -15,6 +15,8 @@ use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
+use eArc\EventTreeTests\env\treeroot\patience\NoPatienceListener;
+use eArc\EventTreeTests\env\treeroot\patience\PatienceListener2;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -30,6 +32,8 @@ class EventTreeTest extends TestCase
         $this->runPatienceAssertions();
         $this->runPhaseAssertions();
         $this->runHandlerAssertions();
+        $this->runMultiTreeAssertions();
+        $this->runBlacklistAssertions();
     }
 
     /**
@@ -158,7 +162,16 @@ class EventTreeTest extends TestCase
 
     protected function runPhaseAssertions()
     {
-        //var_dump($event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['phase', 'start'], ['before', 'destination'],null));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\StartBeyondListener' => 'start',
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\StartListener' => 'start',
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\before\\BeforeListener' => 'before',
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\before\\destination\\DestinationListener' => 'destination',
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\before\\destination\\beyond\\StartBeyondListener' => 'beyond',
+            'eArc\\EventTreeTests\\env\\treeroot\\phase\\start\\before\\destination\\beyond\\BeyondListener' => 'beyond',
+        ], $event->isTouchedByListener);
     }
 
     protected function runHandlerAssertions()
@@ -191,10 +204,9 @@ class EventTreeTest extends TestCase
         $event = new TestEvent(new PropagationType([], ['patience'],null));
         $event->testHandlerAssertions = true;
         $event->dispatch();
-        var_dump($event->isTouchedByListener);
 
         $this->assertEquals([
-            // forward
+            // forward (not functional - test: does it not persist)
             'eArc\\EventTreeTests\\env\\treeroot\\BasicListener' => 'treeroot',
             'eArc\\EventTreeTests\\env\\treeroot\\patience\\PatienceListener2' => 'patience',
             // forward
@@ -210,6 +222,8 @@ class EventTreeTest extends TestCase
         $directories = []; //di_param('earc.event_tree.directories', []);
         $directories['../tests/env/other/otherTreeRoot'] = 'eArc\\EventTreeTests\\env\\other\\otherTreeRoot';
         di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+
+        //var_dump($event->isTouchedByListener);
     }
 
     protected function runBlacklistAssertions()
@@ -217,7 +231,16 @@ class EventTreeTest extends TestCase
         di_clear_cache();
         // di_param('...', []);
         di_import_param(['earc' => ['event_tree' => ['blacklist' => [
-
+            NoPatienceListener::class => true,
+            PatienceListener2::class => true,
         ]]]]);
+
+        $event = new TestEvent(new PropagationType(['patience'], [],null));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\patience\\PatienceListener3' => 'patience',
+            'eArc\\EventTreeTests\\env\\treeroot\\patience\\PatienceListener1' => 'patience',
+            'eArc\\EventTreeTests\\env\\treeroot\\patience\\forwarded\\BasicListener' => 'forwarded',
+        ], $event->isTouchedByListener);
     }
 }
