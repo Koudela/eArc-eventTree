@@ -72,6 +72,7 @@ class ObserverTree implements ObserverTreeInterface
             }
         }
 
+        $event->setTransitionChangeState(0);
         $maxDepth = $event->getPropagationType()->getMaxDepth();
 
           // Deep Search
@@ -109,6 +110,7 @@ class ObserverTree implements ObserverTreeInterface
                 }
 
                 if (0 !== ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TIED)) {
+                    $event->setTransitionChangeState($event->getTransitionChangeState() - HandlerInterface::EVENT_IS_TIED);
                     $newPathQueue = [$transitionInfo->getCurrentPath()];
 
                     break 2;
@@ -211,6 +213,7 @@ class ObserverTree implements ObserverTreeInterface
             }
 
             if (0 !== ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_FORWARDED)) {
+                $event->setTransitionChangeState($event->getTransitionChangeState() - HandlerInterface::EVENT_IS_FORWARDED);
                 break;
             }
         }

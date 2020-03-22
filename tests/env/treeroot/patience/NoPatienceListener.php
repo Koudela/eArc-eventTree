@@ -9,13 +9,13 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTreeTests\env\treeroot\leaf1\leaf11;
+namespace eArc\EventTreeTests\env\treeroot\patience;
 
 use eArc\EventTreeTests\BaseListener;
 use eArc\EventTreeTests\TestEvent;
 use eArc\Observer\Interfaces\EventInterface;
 
-class BasicListener extends BaseListener
+class NoPatienceListener extends BaseListener
 {
     /**
      * @inheritDoc
@@ -25,7 +25,7 @@ class BasicListener extends BaseListener
         parent::process($event);
 
         if ($event instanceof TestEvent && $event->testHandlerAssertions) {
-            $event->getHandler()->tie();
+            $event->getHandler()->forward();
         }
     }
 }

@@ -9,14 +9,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTreeTests;
+namespace eArc\EventTreeTests\env\treeroot\patience\forwarded;
 
-use eArc\EventTree\TreeEvent;
+use eArc\EventTreeTests\BaseListener;
 
-class TestEvent extends TreeEvent
+class BasicListener extends BaseListener
 {
-    /** @var string[] the fully qualified class names */
-    public $isTouchedByListener = [];
-
-    public $testHandlerAssertions = false;
 }

@@ -184,8 +184,9 @@ folder to the `../export/init`, to the `../export/init/collect`, to the
 `../export/init/collect/process/finish` folder. If the `destination` is an empty
 array the `start` folder is also the `destination` folder.
 
-After the `destination` the event behaves as if it performs a a wide search on 
-the remaining tree. 
+After the `destination` the event behaves as if it performs a
+[wide search (BFS)](https://en.wikipedia.org/wiki/Breadth-first_search) on the 
+remaining tree. (The directories are sorted by name ascending.)
 
 The last parameter `maxDepth` restricts the overall travel to folder/vertices 
 with a maximal distance from the `destination` folder/vertice of `maxDepth`. 
@@ -415,5 +416,7 @@ framework furthermore and add event trees as an explicit way of event handling.
 
 
 TODO 
+- ParameterKey as Const 
 - Implement: print trees tool.
-- Implement: TESTS.
+- Implement: runPhaseAssertions;
+

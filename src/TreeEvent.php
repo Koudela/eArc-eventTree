@@ -87,7 +87,7 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
 
     public function setTransitionChangeState(int $state): void
     {
-        $this->transitionChangeState = $this->transitionChangeState | $state;
+        $this->transitionChangeState = $state;
     }
 
     public function isPropagationStopped(): bool

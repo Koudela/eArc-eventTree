@@ -9,14 +9,15 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTreeTests;
+namespace eArc\EventTreeTests\env\treeroot\patience;
 
-use eArc\EventTree\TreeEvent;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\EventTreeTests\BaseListener;
 
-class TestEvent extends TreeEvent
+class PatienceListener2 extends BaseListener implements SortableListenerInterface
 {
-    /** @var string[] the fully qualified class names */
-    public $isTouchedByListener = [];
-
-    public $testHandlerAssertions = false;
+    public static function getPatience(): float
+    {
+        return -2.8;
+    }
 }

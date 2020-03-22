@@ -12,7 +12,20 @@
 namespace eArc\EventTreeTests\env\treeroot\leaf1\leaf12\leaf121;
 
 use eArc\EventTreeTests\BaseListener;
+use eArc\EventTreeTests\TestEvent;
+use eArc\Observer\Interfaces\EventInterface;
 
 class BasicListener extends BaseListener
 {
+    /**
+     * @inheritDoc
+     */
+    public function process(EventInterface $event): void
+    {
+        parent::process($event);
+
+        if ($event instanceof TestEvent && $event->testHandlerAssertions) {
+            $event->getHandler()->kill();
+        }
+    }
 }
