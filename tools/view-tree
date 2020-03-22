@@ -1,3 +1,56 @@
 #!/usr/bin/php
+<?php
 
-#TODO print event tree directory
+use eArc\DI\DI;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\EventTree\Transformation\ObserverTree;use eArc\EventTree\Util\CompositeDir;
+use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
+
+$vendorDir = dirname(__DIR__).'/vendor';
+
+if (!is_dir($vendorDir)) {
+    $vendorDir = dirname(__DIR__, 3);
+}
+
+require_once $vendorDir.'/autoload.php';
+
+$directories = [];
+
+for ($i = 1; $i < count($argv); $i += 2) {
+    $directories[$argv[$i]] = $argv[$i+1];
+}
+
+DI::init();
+di_import_param(['earc' => [
+    'vendor_directory' => $vendorDir,
+    'event_tree' => ['directories' => $directories],
+]]);
+
+
+
+
+function iteratePath($path, $namespace, $indent)
+{
+    foreach (CompositeDir::getSubDirNames($path) as $name) {
+        $newPath = $path !== './' ? $path.'/'.$name : $name;
+        $newNamespace = $path !== './' ? $namespace.'\\'.$name : $name;
+
+        echo str_pad('', $indent*4, ' ').$name."\n";
+
+        foreach (CompositeDir::collectListener($newPath, $newNamespace) as $listener) {
+            echo str_pad('', $indent*4+2, '    ').'- ';
+            $phase = is_subclass_of($listener, PhaseSpecificListenerInterface::class) ? $listener::getPhase() : ObserverTree::PHASE_ACCESS;
+            $patience = is_subclass_of($listener, SortableListenerInterface::class) ? $listener::getPatience() : 0;
+            echo "[$phase, $patience] ".$listener."\n";
+        }
+
+        echo "\n";
+
+        iteratePath($newPath, $newNamespace, $indent+1);
+    }
+}
+
+$path = './';
+$namespace = '';
+
+iteratePath($path, $namespace, 0);

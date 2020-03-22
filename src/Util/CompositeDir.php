@@ -30,14 +30,14 @@ class CompositeDir implements ParameterInterface
             chdir($rootDir);
 
             if (!is_dir($path)) {
-                return $dirs;
+                continue;
             }
 
             chdir($path);
 
             foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
                 if ('.' !== $fileName && '..' !== $fileName && is_dir($fileName)) {
-                    $dirs[] = $fileName;
+                    $dirs[$fileName] = $fileName;
                 }
             }
         }

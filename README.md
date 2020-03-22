@@ -393,8 +393,11 @@ To get a picture of a observer tree and the listener living in it use the comman
 line tool `view-tree`.
 
 ```shell script
-vendor/earc/event-tree/tools/view-tree 'path/tree/root/1' 'path/tree/root/2' 'path/tree/root/3'
+vendor/earc/event-tree/tools/view-tree 'path/tree/root/1' 'namespace\\1' 'path/tree/root/2' 'namespace\\2' 'path/tree/root/3' 'namespace\\3'
 ```
+
+The paths have to be relative to the vendor directory (like the `earc.event_tree.directories`
+parameter). 
 
 ## Conclusion
 
@@ -417,6 +420,3 @@ framework furthermore and add event trees as an explicit way of event handling.
 ### Release 0.0
 
 - initial release
-
-TODO 
-- Implement: print trees tool.
