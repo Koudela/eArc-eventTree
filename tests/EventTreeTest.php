@@ -27,6 +27,9 @@ class EventTreeTest extends TestCase
         $this->bootstrap();
         $this->runStartDestinationAssertions();
         $this->runDepthAssertions();
+        $this->runPatienceAssertions();
+        $this->runPhaseAssertions();
+        $this->runHandlerAssertions();
     }
 
     /**
@@ -85,7 +88,75 @@ class EventTreeTest extends TestCase
     {
         $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], null));
         $event->dispatch();
-        var_dump($event->isTouchedByListener);
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\BasicListener' => 'leaf1',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\BasicListener' => 'leaf11',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\BasicListener' => 'leaf111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\BasicListener' => 'leaf112',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf113\\BasicListener' => 'leaf113',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\leaf1111\\BasicListener' => 'leaf1111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\BasicListener' => 'leaf1121',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\leaf11211\\BasicListener' => 'leaf11211',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], null));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\BasicListener' => 'leaf1',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\BasicListener' => 'leaf11',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\BasicListener' => 'leaf111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\BasicListener' => 'leaf112',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf113\\BasicListener' => 'leaf113',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\leaf1111\\BasicListener' => 'leaf1111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\BasicListener' => 'leaf1121',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\leaf11211\\BasicListener' => 'leaf11211',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], 11));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\BasicListener' => 'leaf1',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\BasicListener' => 'leaf11',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\BasicListener' => 'leaf111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\BasicListener' => 'leaf112',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf113\\BasicListener' => 'leaf113',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\leaf1111\\BasicListener' => 'leaf1111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\BasicListener' => 'leaf1121',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\leaf11211\\BasicListener' => 'leaf11211',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], 1));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\BasicListener' => 'leaf1',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\BasicListener' => 'leaf11',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\BasicListener' => 'leaf111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\BasicListener' => 'leaf112',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf113\\BasicListener' => 'leaf113',
+        ], $event->isTouchedByListener);
+        $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], 2));
+        $event->dispatch();
+        $this->assertEquals([
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\BasicListener' => 'leaf1',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\BasicListener' => 'leaf11',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\BasicListener' => 'leaf111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\BasicListener' => 'leaf112',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf113\\BasicListener' => 'leaf113',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf111\\leaf1111\\BasicListener' => 'leaf1111',
+            'eArc\\EventTreeTests\\env\\treeroot\\leaf1\\leaf11\\leaf112\\leaf1121\\BasicListener' => 'leaf1121',
+        ], $event->isTouchedByListener);
+    }
+
+    protected function runPatienceAssertions()
+    {
+        //var_dump($event->isTouchedByListener);
+    }
+    protected function runPhaseAssertions()
+    {
+
+        //var_dump($event->isTouchedByListener);
+    }
+
+    protected function runHandlerAssertions()
+    {
+        //var_dump($event->isTouchedByListener);
     }
 
     protected function runMultiTreeAssertions()

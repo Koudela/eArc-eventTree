@@ -298,7 +298,7 @@ class MyListener implements ListenerInterface
     public function process(EventInterface $event): void
     {
         // ...
-        $event->kill();
+        $event->getHandler()->kill();
         // ...
     }
 }
@@ -306,12 +306,12 @@ class MyListener implements ListenerInterface
 
 Even the remaining listeners of the same directory won't get called.  
 
-`silence()` forces the event to leave the current observer and discards its 
+`forward()` forces the event to leave the current observer and discards its 
 listener stack.  
 
 ```php
         // ...
-        $event->silence();
+        $event->getHandler()->forward();
         // ...
 ```
 
@@ -323,7 +323,7 @@ children of the observer leaf.
 
 ```php
         // ...
-        $event->terminate();
+        $event->getHandler()->terminate();
         // ...
 ```
 
@@ -336,7 +336,7 @@ You can dismiss them by calling `tie()`.
 
 ```php
         // ...
-        $event->tie();
+        $event->getHandler()->tie();
         // ...
 ```
 
@@ -417,5 +417,3 @@ framework furthermore and add event trees as an explicit way of event handling.
 TODO 
 - Implement: print trees tool.
 - Implement: TESTS.
-
-- fix make wideSearch not deepSearch

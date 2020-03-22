@@ -17,6 +17,7 @@ use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
+use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Util\CompositeDir;
 
@@ -71,10 +72,69 @@ class ObserverTree implements ObserverTreeInterface
             }
         }
 
-        $maxDepth = $this->getNextMaxDepth($event->getPropagationType()->getMaxDepth());
+        $maxDepth = $event->getPropagationType()->getMaxDepth();
 
-        foreach ($this->iterateNodeRecursive($event, $maxDepth) as $callable) {
-            yield $callable;
+          // Deep Search
+//        foreach ($this->iterateNodeRecursive($event, $this->getNextMaxDepth($maxDepth)) as $callable) {
+//            yield $callable;
+//        }
+
+        //WideSearch
+        $pathQueue = [$event->getTransitionInfo()->getCurrentPath()];
+
+        while (!empty($pathQueue) && (null === $maxDepth || $maxDepth > 0)) {
+            foreach ($this->walkTreeLevel($event, $pathQueue) as $callable) {
+                yield $callable;
+            }
+
+            $maxDepth = $this->getNextMaxDepth($maxDepth);
+        }
+    }
+
+    protected function walkTreeLevel(TreeEventInterface $event, array &$pathQueue): iterable
+    {
+        $transitionInfo = $event->getTransitionInfo();
+
+        $newPathQueue = [];
+
+        foreach ($pathQueue as $path) {
+            $this->goToTreeNode($transitionInfo, $path);
+
+            foreach (CompositeDir::getSubDirNames($transitionInfo->getCurrentPathFormatted('/')) as $name) {
+
+                $transitionInfo->addChild($name);
+
+                foreach ($this->iterateNode($event, self::PHASE_BEYOND) as $callable) {
+                    yield $callable;
+                }
+
+                if (0 !== ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TIED)) {
+                    $newPathQueue = [$transitionInfo->getCurrentPath()];
+
+                    break 2;
+                }
+
+                if (0 === ($event->getTransitionChangeState() & HandlerInterface::EVENT_IS_TERMINATED)) {
+                    $newPathQueue[] = $transitionInfo->getCurrentPath();
+                }
+
+                $transitionInfo->goToParent();
+            }
+        }
+
+        $pathQueue = $newPathQueue;
+    }
+
+    protected function goToTreeNode(TransitionInfoInterface $transitionInfo, array $path)
+    {
+        $cnt = count($transitionInfo->getCurrentPath());
+
+        for ($i = 0; $i < $cnt; $i++) {
+            $transitionInfo->goToParent();
+        }
+
+        foreach ($path as $name) {
+            $transitionInfo->addChild($name);
         }
     }
 
@@ -121,7 +181,6 @@ class ObserverTree implements ObserverTreeInterface
     {
         return null === $maxDepth ? null : $maxDepth -1;
     }
-
 
     /**
      * @param TreeEventInterface $event
