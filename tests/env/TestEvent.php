@@ -9,7 +9,7 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\EventTreeTests;
+namespace eArc\EventTreeTests\env;
 
 use eArc\EventTree\TreeEvent;
 

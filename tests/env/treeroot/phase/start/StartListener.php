@@ -13,7 +13,7 @@ namespace eArc\EventTreeTests\env\treeroot\phase\start;
 
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
-use eArc\EventTreeTests\BaseListener;
+use eArc\EventTreeTests\env\BaseListener;
 
 class StartListener extends BaseListener implements PhaseSpecificListenerInterface
 {

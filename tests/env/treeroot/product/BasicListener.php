@@ -11,7 +11,7 @@
 
 namespace eArc\EventTreeTests\env\treeroot\product;
 
-use eArc\EventTreeTests\BaseListener;
+use eArc\EventTreeTests\env\BaseListener;
 
 class BasicListener extends BaseListener
 {

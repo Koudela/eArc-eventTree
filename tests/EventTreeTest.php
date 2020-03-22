@@ -16,6 +16,7 @@ use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTreeTests\env\other\otherTreeRoot\patience\newInOtherTree\BasicListener;
+use eArc\EventTreeTests\env\TestEvent;
 use eArc\EventTreeTests\env\treeroot\patience\NoPatienceListener;
 use eArc\EventTreeTests\env\treeroot\patience\PatienceListener2;
 use PHPUnit\Framework\TestCase;

@@ -12,7 +12,7 @@
 namespace eArc\EventTreeTests\env\treeroot\patience;
 
 use eArc\EventTree\Interfaces\SortableListenerInterface;
-use eArc\EventTreeTests\BaseListener;
+use eArc\EventTreeTests\env\BaseListener;
 
 class PatienceListener3 extends BaseListener implements SortableListenerInterface
 {
