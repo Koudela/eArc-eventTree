@@ -66,7 +66,7 @@ import and even extend trees from other projects. Hence the
 `earc.vendor_directory` parameter has to be set.
 
 ```php
-di_import_param(['earc' => ['vendor_directory' => __DIR__.'/../../vendor/']]);
+di_import_param(['earc' => ['vendor_directory' => __DIR__.'/../../vendor']]);
 ```
 
 Best practice is to have only one directory which is the root for all your event
@@ -74,9 +74,9 @@ trees. This constrain ensures that every developer who is or will be engaged in
 your project can easily keep track of all event trees.
 
 ```php
-$directories = di_param('earc.event_tree.directories', []);
-$directories['../path/to/your/eventTree/root/folder'] = '\\your\\eventTree\\root\\namespace'; 
-di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+di_import_param(['earc' => ['event_tree' => ['directories' => [
+    '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
+]]]]);
 ```
 
 The path of the root folder has to be relative to your projects vendor directory.
@@ -356,11 +356,11 @@ Every directory defined tree has a root directory he lives in and a root namespa
 for autoloading. You can specify as many `earc.event_tree.directories` as you want.
  
 ```php
-$directories = di_param('earc.event_tree.directories', []);
-$directories['../src/MyProject/Events/TreeRoot'] = 'MyProject\\Events\\TreeRoot';
-$directories['Framework/src/EventTreeRoot'] = 'Framework\\EventTreeRoot';
-$directories['ShopCreator/Engine/events/tree/root'] = 'ShopCE\\events\\tree\\root';
-di_import_param(['earc' => ['event_tree' => ['directories' => $directories]]]);
+di_import_param(['earc' => ['event_tree' => ['directories' => [
+    '../src/MyProject/Events/TreeRoot' => 'MyProject\\Events\\TreeRoot',
+    'Framework/src/EventTreeRoot' => 'Framework\\EventTreeRoot',
+    'ShopCreator/Engine/events/tree/root' => 'ShopCE\\events\\tree\\root',
+]]]]);
 ```
 
 The configured roots are seen as one big root. If there are identical paths relative
@@ -371,11 +371,15 @@ autoloading necessity and can therefore not be overwritten. To unregister them
 add their fully qualified class name to the `earc.event_tree.blacklist`.
 
 ```php
-$blacklist = di_param('earc.event_tree.blacklist', []);
-$directories['Framework\\EventTreeRoot\\Some\\Path\\SomeListener'] = true;
-$directories['Framework\\EventTreeRoot\\Some\\Other\\Path\\SomeOtherListener'] = true;
-$directories['ShopCE\\events\\tree\\root\\a\\third\\path\\to\\a\\ThirdUnwantedListener'] = true;
-di_import_param(['earc' => ['event_tree' => ['blacklist' => $blacklist]]]);
+use Framework\EventTreeRoot\Some\Path\SomeListener;
+use Framework\EventTreeRoot\Some\Other\Path\SomeOtherListener;
+use ShopCE\events\tree\root\a\third\path\to\a\ThirdUnwantedListener;
+
+di_import_param(['earc' => ['event_tree' => ['blacklist' => [
+    SomeListener::class => true,
+    SomeOtherListener::class => true,
+    ThirdUnwantedListener::class => true,
+]]]]);
 ```
 
 Hint: Listener must be blacklisted before the `ObserverTree` is build. Therefore
@@ -418,6 +422,3 @@ framework furthermore and add event trees as an explicit way of event handling.
 TODO 
 - ParameterKey as Const 
 - Implement: print trees tool.
-- Implement: 
-    runMultiTreeAssertions;
-

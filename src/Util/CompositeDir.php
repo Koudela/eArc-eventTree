@@ -34,12 +34,14 @@ class CompositeDir
 
             chdir($path);
 
-            foreach (scandir('.', SCANDIR_SORT_ASCENDING) as $fileName) {
+            foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
                 if ('.' !== $fileName && '..' !== $fileName && is_dir($fileName)) {
                     $dirs[] = $fileName;
                 }
             }
         }
+
+        sort($dirs);
 
         return $dirs;
     }
