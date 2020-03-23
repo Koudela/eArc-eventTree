@@ -47,7 +47,7 @@ $ composer install earc/event-tree
 
 ## Bootstrap
 
-earc/observer uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
+earc/event-tree uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
 injection. 
 
 ```php
