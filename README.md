@@ -27,15 +27,18 @@ restrictions on it.
    - [The observer tree](#the-observer-tree)
    - [The listener](#the-listener)
    - [The event](#the-event)
-   - [The propagation Type](#the-propagation-type)
-   - [Dispatching Events](#dispatching-events)
- - [Advanced Usage](#advanced-usage)
+   - [The propagation type](#the-propagation-type)
+   - [Dispatching events](#dispatching-events)
+ - [Advanced usage](#advanced-usage)
    - [Patience](#patience)
    - [Listening to specific traveling phases](#listening-to-specific-traveling-phases)
    - [Manipulating the traveling of dispatched events](#manipulating-the-traveling-of-dispatched-events)
+   - [Custom events](#custom-events)
    - [Extending (third party) observer trees](#extending-third-party-observer-trees)
+   - [The redirect directive](#the-redirect-directive)
  - [Conclusion](#conclusion)
  - [Releases](#releases)
+   - [Release 1.1](#release-11)
    - [Release 1.0](#release-10)
    - [Release 0.0](#release-00)
 
@@ -344,6 +347,14 @@ You can dismiss them by calling `tie()`.
 The event is tied to the current observer and its children. The events travel on
 any neighboring leafs is stopped.
 
+### Custom events
+
+...TODO
+
+`getApplicableListener()`
+
+...TODO
+
 ### Extending (third party) observer trees
 
 If you use observer trees for a library there are scenarios where a user of 
@@ -387,6 +398,63 @@ as soon an event has be dispatched changes to the blacklist are not recognised
 anymore. (You can force the dependency injection system to drop references to 
 **ALL** old build objects using `di_clear_cache`.)
 
+### The redirect directive
+
+The tree extending/inheritance mechanism has one significant drawback: If the inherited 
+tree is not part of your repository you can not change it. That hinders refactoring 
+the tree. Or worse if the inherited tree change you must change your own tree to 
+retain the functionality. The tool to handle this situation smoothly is the `.redirect` 
+directive.
+
+Its a file named `.redirect` you can place in the directory to manipulate the observer 
+leafs. Every line is a redirection. At the beginning of the line you put the sub folder 
+name you want to redirect (it does not need to exist) and at second place separated 
+by a blank you put the target path (it has to exist in at least one event tree directory).
+The target path has to be relative to the event trees root directory, but you can
+use `~/` as a shortcut to reference the current directory.
+
+To exclude an existing or inherited directory just leave the target empty. `.redirect`
+directives are part of the tree inheritance. If several `.redirect` directives
+of the same path exists naming the same sub folder the ordering of the 
+´earc.event_tree.directories´ is important. The directives are overwritten in
+the order their directory tree are registered. You can use the target shortcut `~` 
+to cancel an redirect. 
+
+```
+lama creatures/animals/fox #redirects events targeting the lama subfolder to creatures/animals/fox
+eagle ~/extinct/2351       #redirects events targeting the eagle subfolder to the extinct/2351 subfolder
+maple                      #hides the maple subdirectory from the events
+tiger ~                    #cancels all redirects for tiger made by the event trees inherited so far
+```
+
+For example the rewrite of the path `routing/imported/products` to `routing/products/imported` 
+would take two steps (for each rewritten part one):
+
+1 ) Place into the `routing` directory the `.redirect` directive
+```
+products routing/imported
+imported
+```
+
+2 ) Place into the `imported` directory the `.redirect` directive
+```
+imported ~/products
+products
+``` 
+
+Obviously using this you can not rely on the directory arguments of the route
+only on the parameters.
+
+To rewrite the base leafs put the `.redirect` directive into the event tree root.
+
+### The lookup directive
+
+Every `.redirect` directive you use destroys a bit of the clarity the explicit
+design of the event tree gives to you. Therefore making massive use of the `.redirect` 
+directive is an anti pattern. If you need to redirect quite a bit of the tree
+it is better to rewrite it and use the `.lookup` directive to include the listener
+of the old tree.
+
 ### View Observer Tree
 
 To get a picture of a observer tree and the listener living in it use the command
@@ -409,6 +477,10 @@ Of course you can stay to your architectural style as well, use your preferred
 framework furthermore and add event trees as an explicit way of event handling.
 
 ## Releases
+
+### Release 1.1
+
+- redirect directive
 
 ### Release 1.0
 

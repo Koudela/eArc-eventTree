@@ -2,6 +2,7 @@
 <?php
 
 use eArc\DI\DI;
+use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Transformation\ObserverTree;use eArc\EventTree\Util\CompositeDir;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
@@ -54,8 +55,14 @@ function eventPhasesToString(int $eventPhases): string
     return implode(' | ', $arr);
 }
 
-
-function iteratePath($path, $namespace, $indent)
+/**
+ * @param string $path
+ * @param string $namespace
+ * @param int    $indent
+ *
+ * @throws InvalidObserverNodeException
+ */
+function iteratePath(string $path, string $namespace, int $indent): void
 {
     foreach (CompositeDir::getSubDirNames($path) as $name) {
         $newPath = $path !== './' ? $path.'/'.$name : $name;

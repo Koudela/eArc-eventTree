@@ -22,17 +22,15 @@ interface TransitionInfoInterface
     public function getCurrentPath(): array;
 
     /**
-     * Get the current path in a string representation.
-     *
-     * @param string $delimiter
+     * Get the real path of current path relative to the tree root.
      *
      * @return string
      */
-    public function getCurrentPathFormatted(string $delimiter = ','): string;
+    public function getCurrentRealPath(): string;
 
     /**
-     * Get an array representation of the visited nodes, where the keys are the
-     * node names.
+     * Get an multidimensional array representation of the visited nodes, where
+     * the keys are the node names.
      *
      * @return array
      */
@@ -42,8 +40,9 @@ interface TransitionInfoInterface
      * Add a child to current node and set the pointer to the child node.
      *
      * @param string $name
+     * @param string $path
      */
-    public function addChild(string $name): void;
+    public function addChild(string $name, string $path): void;
 
     /**
      * Set pointer to the parent of the current node.

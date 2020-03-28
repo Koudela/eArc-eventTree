@@ -19,13 +19,18 @@ use eArc\Observer\Interfaces\ListenerInterface;
  */
 class BaseListener implements ListenerInterface
 {
+    static $i = 0;
+
     /**
      * @inheritDoc
      */
     public function process(EventInterface $event): void
     {
+
+
         if ($event instanceof TestEvent) {
-            $event->isTouchedByListener[get_class($this)] = array_slice(explode('\\', get_class($this)), -2, 1)[0];
+            $arr = $event->getTransitionInfo()->getCurrentPath();
+            $event->isTouchedByListener[(self::$i++).'_'.get_class($this)] = array_pop($arr);
         }
     }
 }

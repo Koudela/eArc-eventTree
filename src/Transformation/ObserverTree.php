@@ -18,7 +18,6 @@ use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
 use eArc\EventTree\Interfaces\Propagation\HandlerInterface;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
-use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Util\CompositeDir;
 
@@ -48,7 +47,7 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
 
         /** @var TreeEventInterface $event */
         foreach ($event->getPropagationType()->getStart() as $name) {
-            $event->getTransitionInfo()->addChild($name);
+            $this->addChild($event, $name);
         }
 
         foreach ($this->iterateNode($event, self::PHASE_START) as $callable) {
@@ -62,7 +61,7 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
         $lastKey = count($event->getPropagationType()->getDestination()) - 1;
 
         foreach ($event->getPropagationType()->getDestination() as $key => $name) {
-            $event->getTransitionInfo()->addChild($name);
+            $this->addChild($event,$name);
 
             foreach ($this->iterateNode($event, $lastKey !== $key ? self::PHASE_BEFORE : self::PHASE_DESTINATION) as $callable) {
                 yield $callable;
@@ -93,6 +92,27 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
         }
     }
 
+    /**
+     * @param TreeEventInterface $event
+     * @param string $name
+     *
+     * @throws InvalidObserverNodeException
+     */
+    protected function addChild(TreeEventInterface $event, string $name): void
+    {
+        $path = $event->getTransitionInfo()->getCurrentRealPath();
+        $newPath = CompositeDir::getNextPath($path, $name);
+        $event->getTransitionInfo()->addChild($name, $newPath);
+    }
+
+    /**
+     * @param TreeEventInterface $event
+     * @param array              $pathQueue
+     *
+     * @return iterable
+     *
+     * @throws InvalidObserverNodeException
+     */
     protected function walkTreeLevel(TreeEventInterface $event, array &$pathQueue): iterable
     {
         $transitionInfo = $event->getTransitionInfo();
@@ -100,11 +120,10 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
         $newPathQueue = [];
 
         foreach ($pathQueue as $path) {
-            $this->goToTreeNode($transitionInfo, $path);
+            $this->goToTreeNode($event, $path);
 
-            foreach (CompositeDir::getSubDirNames($transitionInfo->getCurrentPathFormatted('/')) as $name) {
-
-                $transitionInfo->addChild($name);
+            foreach (CompositeDir::getSubDirNames($transitionInfo->getCurrentRealPath()) as $name) {
+                $this->addChild($event, $name);
 
                 foreach ($this->iterateNode($event, self::PHASE_BEYOND) as $callable) {
                     yield $callable;
@@ -128,8 +147,16 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
         $pathQueue = $newPathQueue;
     }
 
-    protected function goToTreeNode(TransitionInfoInterface $transitionInfo, array $path)
+    /**
+     * @param TreeEventInterface $event
+     * @param array $path
+     *
+     * @throws InvalidObserverNodeException
+     */
+    protected function goToTreeNode(TreeEventInterface $event, array $path)
     {
+        $transitionInfo = $event->getTransitionInfo();
+
         $cnt = count($transitionInfo->getCurrentPath());
 
         for ($i = 0; $i < $cnt; $i++) {
@@ -137,7 +164,7 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
         }
 
         foreach ($path as $name) {
-            $transitionInfo->addChild($name);
+            $this->addChild($event, $name);
         }
     }
 
@@ -155,8 +182,8 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
             return;
         }
 
-        foreach (CompositeDir::getSubDirNames($event->getTransitionInfo()->getCurrentPathFormatted('/')) as $name) {
-            $event->getTransitionInfo()->addChild($name);
+        foreach (CompositeDir::getSubDirNames($event->getTransitionInfo()->getCurrentRealPath()) as $name) {
+            $this->addChild($event, $name);
 
             foreach ($this->iterateNode($event, self::PHASE_BEYOND) as $callable) {
                 yield $callable;
@@ -195,13 +222,12 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
      */
     protected function iterateNode(TreeEventInterface $event, int $phase = self::PHASE_ACCESS): iterable
     {
-        $path = './'.$event->getTransitionInfo()->getCurrentPathFormatted('/');
-        $namespace = $event->getTransitionInfo()->getCurrentPathFormatted('\\');
+        $path = $event->getTransitionInfo()->getCurrentRealPath();
 
         $event->setTransitionChangeState(0);
 
         if (!isset($this->listener[$path])) {
-            $this->registerListener($path, $namespace);
+            $this->registerListener($path);
         }
 
         foreach ($this->listener[$path] as $fQCN => $patience) {
@@ -239,14 +265,13 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
 
     /**
      * @param string $path
-     * @param string $namespace
      *
      * @throws InvalidObserverNodeException
      */
-    protected function registerListener(string $path, string $namespace): void
+    protected function registerListener(string $path): void
     {
         $this->listener[$path] = [];
-        foreach (CompositeDir::collectListener($path, $namespace) as $className => $fQCN) {
+        foreach (CompositeDir::collectListener($path) as $className => $fQCN) {
             if (!isset($this->blacklistedListener[$fQCN])) {
                 $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
                 $this->listener[$path][$fQCN] = $patience;

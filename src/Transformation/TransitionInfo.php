@@ -26,9 +26,9 @@ class TransitionInfo implements TransitionInfoInterface
         return $this->currentPath;
     }
 
-    public function getCurrentPathFormatted(string $delimiter = ','): string
+    public function getCurrentRealPath(): string
     {
-        return implode($delimiter, $this->currentPath);
+        return array_key_last($this->currentPath) ?? '.';
     }
 
     public function getTreeVisited(): array
@@ -36,7 +36,7 @@ class TransitionInfo implements TransitionInfoInterface
         return $this->treeVisited;
     }
 
-    public function addChild(string $name): void
+    public function addChild(string $name, string $path): void
     {
         $tree =& $this->treeVisited;
 
@@ -46,7 +46,7 @@ class TransitionInfo implements TransitionInfoInterface
 
         $tree[$name] = [];
 
-        $this->currentPath[] = $name;
+        $this->currentPath[$path] = $name;
     }
 
     public function goToParent(): void
