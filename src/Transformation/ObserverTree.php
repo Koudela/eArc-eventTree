@@ -20,6 +20,7 @@ use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Util\CompositeDir;
+use eArc\EventTree\Util\DirectiveReader;
 
 class ObserverTree implements ObserverTreeInterface, ParameterInterface
 {
@@ -101,7 +102,8 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
     protected function addChild(TreeEventInterface $event, string $name): void
     {
         $path = $event->getTransitionInfo()->getCurrentRealPath();
-        $newPath = CompositeDir::getNextPath($path, $name);
+        $redirectDirective = DirectiveReader::getRedirect($path);
+        $newPath = $redirectDirective->getPathForLeaf($name);
         $event->getTransitionInfo()->addChild($name, $newPath);
     }
 
@@ -280,5 +282,4 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
 
         asort($this->listener[$path], SORT_NUMERIC);
     }
-
 }

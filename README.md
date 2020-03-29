@@ -36,6 +36,7 @@ restrictions on it.
    - [Custom events](#custom-events)
    - [Extending (third party) observer trees](#extending-third-party-observer-trees)
    - [The redirect directive](#the-redirect-directive)
+   - [The lookup directive](#the-redirect-directive)
  - [Conclusion](#conclusion)
  - [Releases](#releases)
    - [Release 1.1](#release-11)
@@ -436,7 +437,7 @@ products routing/imported
 imported
 ```
 
-2 ) Place into the `imported` directory the `.redirect` directive
+2 ) Place into the `routing/imported` directory the `.redirect` directive
 ```
 imported ~/products
 products
@@ -452,8 +453,29 @@ To rewrite the base leafs put the `.redirect` directive into the event tree root
 Every `.redirect` directive you use destroys a bit of the clarity the explicit
 design of the event tree gives to you. Therefore making massive use of the `.redirect` 
 directive is an anti pattern. If you need to redirect quite a bit of the tree
-it is better to rewrite it and use the `.lookup` directive to include the listener
+it is better to rewrite it and use the `.lookup` directive to include the listeners
 of the old tree.
+
+Like the `.redirect` directive the `.lookup` directive is a plain text file. 
+If you put a path in there it will be included. That means every listener in the 
+linked leaf of the event tree will be handled as if it would reside in the current
+leaf. Every line is an separate include. The path has to be relative to the event
+tree root.
+
+If we use the example of the rewrite of the path `routing/imported/products` to 
+`routing/products/imported` again:
+
+1 ) Make a directory path `routing/products/imported`
+
+2 ) Place into the `routing/imported` directory the `.lookup` directive
+```
+routing/imported/products
+``` 
+
+3 ) To cancel the old path place into the `routing` directory the `.redirect` directive
+```
+imported
+```
 
 ### View Observer Tree
 
@@ -481,6 +503,7 @@ framework furthermore and add event trees as an explicit way of event handling.
 ### Release 1.1
 
 - redirect directive
+- lookup directive
 
 ### Release 1.0
 

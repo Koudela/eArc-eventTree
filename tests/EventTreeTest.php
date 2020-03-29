@@ -43,6 +43,7 @@ class EventTreeTest extends TestCase
         $this->runMultiTreeAssertions();
         $this->runBlacklistAssertions();
         $this->runRedirectDirectiveAssertions();
+        $this->runLookupDirectiveAssertions();
     }
 
     /**
@@ -77,6 +78,14 @@ class EventTreeTest extends TestCase
         $event->dispatch();
         $this->assertInstanceOf(TreeEventInterface::class, $event);
         $this->assertEquals(['0_eArc\\EventTreeTests\\env\\treeroot\\BasicListener' => null], $event->isTouchedByListener);
+
+        BaseListener::$i = 0;
+        $event = new TestEvent(new PropagationType(['blank'], [], null));
+        $event->dispatch();
+        $this->assertEquals([
+            '0_eArc\EventTreeTests\env\treeroot\blank\otherBlank\done\BasicListener' => 'done'
+        ], $event->isTouchedByListener);
+
 
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['product', 'export'], ['init', 'collect', 'process', 'finish'], 0));
@@ -347,6 +356,21 @@ class EventTreeTest extends TestCase
             '8_eArc\\EventTreeTests\\env\\treeroot\\redirect\\products\\imported\\done\\BasicListener' => 'done',
             '9_eArc\\EventTreeTests\\env\\other\\otherTreeRoot\\redirect\\some\\BasicListener' => 'link',
             '10_eArc\\EventTreeTests\\env\\other\\otherTreeRoot\\redirect\\some\\other\\BasicListener' => 'other',
+        ], $event->isTouchedByListener);
+    }
+
+    /**
+     * @throws IsDispatchedException
+     */
+    protected function runLookupDirectiveAssertions()
+    {
+        BaseListener::$i = 0;
+        $event = new TestEvent(new PropagationType(['lookup'], [], null));
+        $event->dispatch();
+        $this->assertEquals([
+            '0_eArc\EventTreeTests\env\treeroot\lookup\BasicListener' => 'lookup',
+            '1_eArc\EventTreeTests\env\other\otherTreeRoot\redirect\some\other\BasicListener' => 'lookup',
+            '2_eArc\EventTreeTests\env\treeroot\product\BasicListener' => 'lookup',
         ], $event->isTouchedByListener);
     }
 }

@@ -13,9 +13,20 @@ namespace eArc\EventTree\Util;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\ParameterInterface;
+use Iterator;
 
 class CompositeDir implements ParameterInterface
 {
+    public static function getRootsIterator(): Iterator
+    {
+        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace) {
+            chdir(di_param(ParameterInterface::VENDOR_DIR));
+            chdir($rootDir);
+
+            yield $rootDir => $rootNamespace;
+        }
+    }
+
     /**
      * @param string $realPathRelativeToTreeRoot
      *
@@ -23,14 +34,11 @@ class CompositeDir implements ParameterInterface
      */
     public static function getSubDirNames(string $realPathRelativeToTreeRoot): array
     {
-        $dirs = [];
+        $redirect = DirectiveReader::getRedirect($realPathRelativeToTreeRoot);
 
-        $invalid = static::getRedirectSubDirNames($realPathRelativeToTreeRoot, $dirs);
+        $dirs = $redirect->validLeafs;
 
-        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace) {
-            chdir(di_param(ParameterInterface::VENDOR_DIR));
-            chdir($rootDir);
-
+        foreach (static::getRootsIterator() as $rootDir => $rootNamespace) {
             if (!is_dir($realPathRelativeToTreeRoot)) {
                 continue;
             }
@@ -38,7 +46,7 @@ class CompositeDir implements ParameterInterface
             chdir($realPathRelativeToTreeRoot);
 
             foreach (scandir('.', SCANDIR_SORT_NONE) as $name) {
-                if ('.' !== $name && '..' !== $name && is_dir($name) && !isset($invalid[$name])) {
+                if ('.' !== $name && '..' !== $name && is_dir($name) && !isset($redirect->invalidLeafs[$name])) {
                     $dirs[$name] = $name;
                 }
             }
@@ -47,92 +55,6 @@ class CompositeDir implements ParameterInterface
         sort($dirs);
 
         return $dirs;
-    }
-
-    protected static function getRedirectSubDirNames(string $realPathRelativeToTreeRoot, array &$names): array
-    {
-        $invalid = [];
-
-        foreach (static::getRedirect($realPathRelativeToTreeRoot) as $key => $value) {
-            if ('' !== $value) {
-                $names[$key] = $key;
-            } else {
-                $invalid[$key] = $key;
-            }
-        }
-
-        return $invalid;
-    }
-
-    /**
-     * @param string $realPathRelativeToTreeRoot
-     * @param string $name
-     *
-     * @return string
-     *
-     * @throws InvalidObserverNodeException
-     */
-    public static function getNextPath(string $realPathRelativeToTreeRoot, string $name): string
-    {
-        $redirect = static::getRedirect($realPathRelativeToTreeRoot);
-
-        $short = $realPathRelativeToTreeRoot === '.';
-
-            if (!isset($redirect[$name]) || '~' === $redirect[$name]) {
-            return $short ? $name : $realPathRelativeToTreeRoot.'/'.$name;
-        }
-
-        if ('~/' === substr($redirect[$name], 0, 2)) {
-            $name = substr($redirect[$name], 2);
-
-            return $short ? $name : $realPathRelativeToTreeRoot.'/'.$name;
-        }
-
-        if ('' === $redirect[$name]) {
-            throw new InvalidObserverNodeException(sprintf('Path `%s` is no valid observer node extending `%s`.', $name, $realPathRelativeToTreeRoot));
-        }
-
-        return $redirect[$name];
-    }
-
-    /**
-     * @param string $realPathRelativeToTreeRoot
-     * @return string[]
-     */
-    protected static function getRedirect(string $realPathRelativeToTreeRoot): array
-    {
-        $redirect = [];
-
-        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace) {
-            chdir(di_param(ParameterInterface::VENDOR_DIR));
-            chdir($rootDir);
-
-            if (!is_dir($realPathRelativeToTreeRoot)) {
-                continue;
-            }
-
-            chdir($realPathRelativeToTreeRoot);
-
-            if (is_file('.redirect')) {
-                self::readRedirect(file_get_contents('.redirect'), $redirect);
-            }
-        }
-
-        return $redirect;
-    }
-
-    /**
-     * @param string   $fileContent
-     * @param string[] $result
-     */
-    protected static function readRedirect(string $fileContent, array &$result): void
-    {
-        foreach (explode("\n", $fileContent) as $line) {
-            $row = explode(' ', $line, 3);
-            if ('' !== $row[0]) {
-                $result[$row[0]] = isset($row[1]) ? $row[1] : '';
-            }
-        }
     }
 
     /**
@@ -144,28 +66,15 @@ class CompositeDir implements ParameterInterface
      */
     public static function collectListener(string $path): array
     {
-        $namespace = str_replace('/', '\\', $path);
-        $listener = null;
+        $listener = [];
 
-        foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace)
-        {
-            chdir(di_param(ParameterInterface::VENDOR_DIR));
-            chdir($rootDir);
+        $directoryFound = false;
 
-            if (is_dir($path))
-            {
-                chdir($path);
-
-                if (null === $listener) {
-                    $listener = [];
-                }
-                var_dump("$rootNamespace --- $path --- $namespace");
-
-                static::processDir($rootNamespace.('.' !== $namespace ? '\\'.$namespace : ''), $listener);
-            }
+        foreach(DirectiveReader::getLookup($path) as $realPathRelativeToTreeRoot) {
+            $directoryFound = static::collectLocalListener($realPathRelativeToTreeRoot, $listener) || $directoryFound;
         }
 
-        if (null === $listener) {
+        if (!$directoryFound) {
             throw new InvalidObserverNodeException(sprintf('Path `%s` is no valid directory for an observer node.', $path));
         }
 
@@ -173,20 +82,32 @@ class CompositeDir implements ParameterInterface
     }
 
     /**
-     * @param string   $namespace
-     * @param string[] $listener
+     * @param string $path
+     * @param array $listener
+     *
+     * @return bool
      */
-    protected static function processDir(string $namespace, array &$listener): void
+    protected static function collectLocalListener(string $path, array &$listener): bool
     {
-        foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName)
-        {
-            if ('.' === $fileName || '..' === $fileName || is_dir($fileName) || substr($fileName, -4) !== '.php') {
-                continue;
-            }
+        $directoryFound = false;
+        $namespace = str_replace('/', '\\', $path);
 
-            $className = substr($fileName, 0,-4);
-var_dump($namespace.'\\'.$className);
-            $listener[$namespace.'\\'.$className] = $namespace.'\\'.$className;
+        foreach (static::getRootsIterator() as $rootDir => $rootNamespace) {
+            if (is_dir($path)) {
+                chdir($path);
+                $directoryFound = true;
+
+                $fullNamespace = $rootNamespace.('.' !== $namespace ? '\\' . $namespace : '');
+
+                foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
+                    if (is_file($fileName) && substr($fileName, -4) === '.php') {
+                        $className = $fullNamespace.'\\'.substr($fileName, 0, -4);
+                        $listener[$className] = $className;
+                    }
+                }
+            }
         }
+
+        return $directoryFound;
     }
 }
