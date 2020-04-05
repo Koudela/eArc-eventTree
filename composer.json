@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - event tree component",
     "type": "library",
     "license": "MIT",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "authors": [
         {
             "name": "Thomas Koudela",

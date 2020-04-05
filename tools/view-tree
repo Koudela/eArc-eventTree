@@ -6,6 +6,7 @@ use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
 use eArc\EventTree\Transformation\ObserverTree;use eArc\EventTree\Util\CompositeDir;
 use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\EventTree\Util\DirectiveReader;
 
 $vendorDir = dirname(__DIR__).'/vendor';
 
@@ -57,20 +58,19 @@ function eventPhasesToString(int $eventPhases): string
 
 /**
  * @param string $path
- * @param string $namespace
  * @param int    $indent
  *
  * @throws InvalidObserverNodeException
  */
-function iteratePath(string $path, string $namespace, int $indent): void
+function iteratePath(string $path, int $indent): void
 {
     foreach (CompositeDir::getSubDirNames($path) as $name) {
-        $newPath = $path !== './' ? $path.'/'.$name : $name;
-        $newNamespace = $path !== './' ? $namespace.'\\'.$name : $name;
+        $redirectDirective = DirectiveReader::getRedirect($path);
+        $newPath = $redirectDirective->getPathForLeaf($name);
 
         echo str_pad('', $indent*4, ' ').$name."\n";
 
-        foreach (CompositeDir::collectListener($newPath, $newNamespace) as $listener) {
+        foreach (CompositeDir::collectListener($newPath) as $listener) {
             echo str_pad('', $indent*4+2, '    ').'- ';
             $phase = eventPhasesToString(is_subclass_of($listener, PhaseSpecificListenerInterface::class) ? $listener::getPhase() : ObserverTree::PHASE_ACCESS);
             $patience = is_subclass_of($listener, SortableListenerInterface::class) ? $listener::getPatience() : 0;
@@ -79,11 +79,9 @@ function iteratePath(string $path, string $namespace, int $indent): void
 
         echo "\n";
 
-        iteratePath($newPath, $newNamespace, $indent+1);
+        iteratePath($newPath, $indent+1);
     }
 }
 
 $path = './';
-$namespace = '';
-
-iteratePath($path, $namespace, 0);
+iteratePath($path, 0);

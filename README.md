@@ -23,7 +23,7 @@ restrictions on it.
  - [Install](#install)
  - [Bootstrap](#bootstrap)
  - [Configure](#configure)
- - [Use](#use)
+ - [Basic usage](#basic-usage)
    - [The observer tree](#the-observer-tree)
    - [The listener](#the-listener)
    - [The event](#the-event)
@@ -34,6 +34,7 @@ restrictions on it.
    - [Listening to specific traveling phases](#listening-to-specific-traveling-phases)
    - [Manipulating the traveling of dispatched events](#manipulating-the-traveling-of-dispatched-events)
    - [Custom events](#custom-events)
+   - [Subsystem handling](#subsystem-handling)
    - [Extending (third party) observer trees](#extending-third-party-observer-trees)
    - [The redirect directive](#the-redirect-directive)
    - [The lookup directive](#the-redirect-directive)
@@ -46,7 +47,7 @@ restrictions on it.
 ## Install
 
 ```bash
-$ composer install earc/event-tree
+composer install earc/event-tree
 ```
 
 ## Bootstrap
@@ -85,7 +86,7 @@ di_import_param(['earc' => ['event_tree' => ['directories' => [
 
 The path of the root folder has to be relative to your projects vendor directory.
 
-## Use
+## Basic Usage
 
 Since we use the native tree data structures of the modern operating systems to
 organize our code it is a tiny step to put them to use to decouple code and
@@ -123,8 +124,8 @@ line tool.
 
 The event listener is the bridge between the event and the business logic of 
 your application. It can attach a payload to an event and read the payload other 
-listener have attached. By this you can wire your application through one or 
-more event trees.
+listener have attached. By this you can wire your application through your event 
+tree.
 
 Like a front controller is attached to a route/request an event listener is 
 attached to an observer/event. Best practice is to write small listener that
@@ -146,7 +147,7 @@ class MyListener implements ListenerInterface
 }
 ```
 
-It gets autoloaded and initialised on the first visit of an event.
+A listener is autoloaded and initialised on the first visit of an event.
 
 ### The event
 
@@ -185,8 +186,8 @@ a linear manner. For example given a value of
 `['init','collect','process','finish']` the event would travel from the `../export`
 folder to the `../export/init`, to the `../export/init/collect`, to the
 `../export/init/collect/process` and thereafter to the 
-`../export/init/collect/process/finish` folder. If the `destination` is an empty
-array the `start` folder is also the `destination` folder.
+`../export/init/collect/process/finish` folder. If the `destination` parameter is 
+an empty array the `start` folder is also the `destination` folder.
 
 After the `destination` the event behaves as if it performs a
 [wide search (BFS)](https://en.wikipedia.org/wiki/Breadth-first_search) on the 
@@ -199,7 +200,8 @@ If `maxDepth` is configured to `null` there is no restriction. For example if
 observer leaf.
 
 The `PropagationType` is immutable. Thus these criteria cannot be altered once 
-the event build. They define the four [traveling phases](#listening-to-specific-traveling-phases).
+the event build. They define the four 
+[traveling phases](#listening-to-specific-traveling-phases).
 
 ### Dispatching Events
 
@@ -249,8 +251,7 @@ The `PropagationType` gives birth to four event phases:
 - `destination` - the event is on its `destination` vertice. 
 - `beyond` - the event has traveled beyond its `destination` vertice.
 
-If `destination` is empty there is no `destination` phase nor a `beyond` phase.
-Same applies if the `depth` parameter smaller than the `destinations` length.
+If `destination` is empty there is no `destination` phase nor a `before` phase.
 
 Listeners implementing the `PhaseSpecificListenerInterface` can listen to one, 
 two or three instead of all four event phases. Use the `ObserverTreeInterface` 
@@ -350,11 +351,78 @@ any neighboring leafs is stopped.
 
 ### Custom events
 
-...TODO
+### Customized events
 
-`getApplicableListener()`
+To keep your components decoupled the event should be the only place where 
+runtime information is kept (when a listener has finished his work).
+As the runtime information is app specific it is part of your architectural
+responsibility to design your own events.
 
-...TODO
+Best practice is to use interfaces to describe the runtime information. Follow
+the interface segregation principle 
+([ISP](https://en.wikipedia.org/wiki/Interface_segregation_principle)). Design
+objects that implement the interface(s) and extend the `eArc\EventTree\TreeEvent` 
+to provide these objects.
+
+As example what it could look like for an import process.
+
+```php
+use eArc\EventTree\TreeEvent;
+use eArc\EventTree\Propagation\PropagationType;
+
+interface ImportInformationInterface
+{
+    public function getRunnerId(): int;
+    public function addWarning(Exception $exception);
+    public function getWarnings(): array;
+    public function getImported(): array;
+    public function getChanged(): array;
+}
+
+class ImportInformation implements ImportInformationInterface
+{
+    protected $runnerId;
+    protected $warnings = [];
+    protected $imported = [];
+    protected $changed = [];
+
+    //...
+}
+
+class AppRouterEvent extends TreeEvent
+{
+    protected $runtimeInformation;
+
+    public function __construct(PropagationType $propagationType)
+    {
+        parent::__construct($propagationType);
+
+        $this->runtimeInformation = di_get(ImportInformation::class);              
+    }
+
+    public function getRI(): ImportInformationInterface {/*...*/}
+}
+```
+
+Now all import information that has to be exchanged between your listeners
+is exposed, easy to find and easy to understand.
+
+### Subsystem handling
+
+If you need an event that triggers only a subset of listeners, you can modify the 
+`getApplicableListener()` method provided by the `EventInterface`. It returns an 
+array of all listener interfaces that are called by the event.
+
+For example if a core app supports several versions you can use separate listeners 
+for different versions this way. If a controller supports more than one 
+version it simply implements more than one listener interface. 
+
+Other use cases where this functionality comes handy: 
+- Some part of the app is only available in some country or to some language.
+- Some part of the app is only active in debug mode.
+- The app behaviour changes significantly for power users paying more money.
+- Different parts of the app can be toggled.
+- Different phases of processing events on the same part of the tree.
 
 ### Extending (third party) observer trees
 
@@ -448,6 +516,10 @@ only on the parameters.
 
 To rewrite the base leafs put the `.redirect` directive into the event tree root.
 
+Hint: The namespace constrains on characters and reserved words limits the usable 
+leaf names. The `.redirect` directive allows you to define a leaf name with no 
+restrictions at all.
+ 
 ### The lookup directive
 
 Every `.redirect` directive you use destroys a bit of the clarity the explicit
