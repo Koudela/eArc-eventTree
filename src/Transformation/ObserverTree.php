@@ -274,7 +274,7 @@ class ObserverTree implements ObserverTreeInterface, ParameterInterface
     {
         $this->listener[$path] = [];
         foreach (CompositeDir::collectListener($path) as $className => $fQCN) {
-            if (!isset($this->blacklistedListener[$fQCN])) {
+            if (!isset($this->blacklistedListener[$fQCN]) || !$this->blacklistedListener[$fQCN]) {
                 $patience = is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
                 $this->listener[$path][$fQCN] = $patience;
             }
