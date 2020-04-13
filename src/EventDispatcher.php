@@ -12,20 +12,23 @@
 namespace eArc\EventTree;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
+use eArc\EventTree\Exceptions\UnsuitableEventException;
 use eArc\EventTree\Interfaces\EventDispatcherInterface;
+use eArc\EventTree\Interfaces\ParameterInterface;
 use eArc\EventTree\Interfaces\Transformation\ObserverTreeInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
+use eArc\EventTree\Transformation\CacheObserverTree;
 use eArc\EventTree\Transformation\ObserverTree;
 
-class EventDispatcher implements EventDispatcherInterface
+class EventDispatcher implements EventDispatcherInterface, ParameterInterface
 {
     /** @var ObserverTreeInterface */
     protected $observerTree;
 
     public function __construct()
     {
-        $this->observerTree = di_is_decorated(ObserverTreeInterface::class)
-            ? di_get(ObserverTreeInterface::class)
+        $this->observerTree = di_param(ParameterInterface::USE_CACHE, false)
+            ? di_get(CacheObserverTree::class)
             : di_get(ObserverTree::class);
     }
 
@@ -35,6 +38,7 @@ class EventDispatcher implements EventDispatcherInterface
      * @return TreeEventInterface
      *
      * @throws InvalidObserverNodeException
+     * @throws UnsuitableEventException
      */
     public function dispatch($event): TreeEventInterface
     {

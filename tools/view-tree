@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 
+use eArc\Core\Configuration;
 use eArc\DI\DI;
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\SortableListenerInterface;
@@ -14,20 +15,10 @@ if (!is_dir($vendorDir)) {
     $vendorDir = dirname(__DIR__, 3);
 }
 
-require_once $vendorDir.'/autoload.php';
-
-$directories = [];
-
-for ($i = 1; $i < count($argv); $i += 2) {
-    $directories[$argv[$i]] = $argv[$i+1];
-}
+require $vendorDir.'/autoload.php';
 
 DI::init();
-di_import_param(['earc' => [
-    'vendor_directory' => $vendorDir,
-    'event_tree' => ['directories' => $directories],
-]]);
-
+Configuration::build($argv[1]);
 
 function eventPhasesToString(int $eventPhases): string
 {
@@ -70,18 +61,16 @@ function iteratePath(string $path, int $indent): void
 
         echo str_pad('', $indent*4, ' ').$name."\n";
 
-        foreach (CompositeDir::collectListener($newPath) as $listener) {
+        foreach (di_get(CompositeDir::class)->collectListener($newPath) as $listener => $phase) {
             echo str_pad('', $indent*4+2, '    ').'- ';
             $phase = eventPhasesToString(is_subclass_of($listener, PhaseSpecificListenerInterface::class) ? $listener::getPhase() : ObserverTree::PHASE_ACCESS);
             $patience = is_subclass_of($listener, SortableListenerInterface::class) ? $listener::getPatience() : 0;
             echo "[$phase, $patience] ".$listener."\n";
         }
 
-        echo "\n";
-
         iteratePath($newPath, $indent+1);
     }
 }
 
-$path = './';
+$path = '.';
 iteratePath($path, 0);

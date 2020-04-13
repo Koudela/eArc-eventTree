@@ -16,6 +16,7 @@ namespace eArc\EventTree\Interfaces\Propagation;
  */
 interface HandlerInterface
 {
+    const EVENT_IS_CLEAN = 0;
     const EVENT_IS_FORWARDED = 1;
     const EVENT_IS_TIED = 2;
     const EVENT_IS_TERMINATED = 4;

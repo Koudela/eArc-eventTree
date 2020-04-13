@@ -11,16 +11,15 @@
 
 namespace eArc\EventTreeTests;
 
+use eArc\Core\Configuration;
 use eArc\DI\DI;
 use eArc\DI\Exceptions\InvalidArgumentException;
 use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\EventTree\Interfaces\ParameterInterface;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use eArc\EventTree\Propagation\PropagationType;
 use eArc\EventTreeTests\env\BaseListener;
-use eArc\EventTreeTests\env\other\otherTreeRoot\patience\newInOtherTree\BasicListener;
 use eArc\EventTreeTests\env\TestEvent;
-use eArc\EventTreeTests\env\treeroot\patience\NoPatienceListener;
-use eArc\EventTreeTests\env\treeroot\patience\PatienceListener2;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,51 +27,14 @@ use PHPUnit\Framework\TestCase;
  */
 class EventTreeTest extends TestCase
 {
-    /**
-     * @throws InvalidArgumentException
+     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    public function testIntegration()
+    public function testStartDestinationAssertions()
     {
         $this->bootstrap();
-        $this->runStartDestinationAssertions();
-        $this->runDepthAssertions();
-        $this->runPatienceAssertions();
-        $this->runPhaseAssertions();
-        $this->runHandlerAssertions();
-        $this->runMultiTreeAssertions();
-        $this->runBlacklistAssertions();
-        $this->runRedirectDirectiveAssertions();
-        $this->runLookupDirectiveAssertions();
-    }
 
-    /**
-     * @throws InvalidArgumentException
-     */
-    protected function bootstrap()
-    {
-        $vendorDir = dirname(__DIR__).'/vendor';
-
-        if (!is_dir($vendorDir)) {
-            $vendorDir = dirname(__DIR__, 3);
-        }
-
-        require_once $vendorDir.'/autoload.php';
-
-        DI::init();
-
-        di_import_param(['earc' => ['vendor_directory' => $vendorDir]]);
-
-        di_import_param(['earc' => ['event_tree' => ['directories' => [
-            '../tests/env/treeroot' => 'eArc\\EventTreeTests\\env\\treeroot'
-        ]]]]);
-    }
-
-    /**
-     * @throws IsDispatchedException
-     */
-    protected function runStartDestinationAssertions()
-    {
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType([], [], 0));
         $event->dispatch();
@@ -118,9 +80,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runDepthAssertions()
+    public function testDepthAssertions()
     {
+        $this->bootstrap();
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['leaf1'], ['leaf11'], null));
         $event->dispatch();
@@ -190,9 +155,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runPatienceAssertions()
+    public function testPatienceAssertions()
     {
+        $this->bootstrap();
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['patience'], [],0));
         $event->dispatch();
@@ -206,9 +174,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runPhaseAssertions()
+    public function testPhaseAssertions()
     {
+        $this->bootstrap();
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['phase', 'start'], ['before', 'destination'],null));
         $event->dispatch();
@@ -224,9 +195,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runHandlerAssertions()
+    public function testHandlerAssertions()
     {
+        $this->bootstrap();
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['leaf1'], [],null));
         $event->testHandlerAssertions = true;
@@ -270,14 +244,11 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runMultiTreeAssertions()
+    public function testMultiTreeAssertions()
     {
-        di_clear_cache();
-
-        di_import_param(['earc' => ['event_tree' => ['directories' => [
-            '../tests/env/other/otherTreeRoot' => 'eArc\\EventTreeTests\\env\\other\\otherTreeRoot',
-        ]]]]);
+        $this->bootstrap('.earc-multi-tree-config.php');
 
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['patience'], [],null));
@@ -296,16 +267,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runBlacklistAssertions()
+    public function testBlacklistAssertions()
     {
+        $this->bootstrap('.earc-blacklist-config.php');
         di_clear_cache();
-
-        di_import_param(['earc' => ['event_tree' => ['blacklist' => [
-            NoPatienceListener::class => true,
-            PatienceListener2::class => true,
-            BasicListener::class => true,
-        ]]]]);
 
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['patience'], [],null));
@@ -321,9 +288,13 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runRedirectDirectiveAssertions()
+    public function testRedirectDirectiveAssertions()
     {
+        $this->bootstrap('.earc-multi-tree-config.php');
+        di_clear_cache();
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['panda'], [],null));
         $event->dispatch();
@@ -361,9 +332,12 @@ class EventTreeTest extends TestCase
 
     /**
      * @throws IsDispatchedException
+     * @throws InvalidArgumentException
      */
-    protected function runLookupDirectiveAssertions()
+    public function testLookupDirectiveAssertions()
     {
+        $this->bootstrap('.earc-multi-tree-config.php');
+
         BaseListener::$i = 0;
         $event = new TestEvent(new PropagationType(['lookup'], [], null));
         $event->dispatch();
@@ -373,4 +347,53 @@ class EventTreeTest extends TestCase
             '2_eArc\EventTreeTests\env\treeroot\product\BasicListener' => 'lookup',
         ], $event->isTouchedByListener);
     }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws IsDispatchedException
+     */
+    public function testCacheAssertions()
+    {
+        $this->bootstrap('.earc-cache-config.php');
+
+        exec('rm /tmp/earc_event_tree_cache.php');
+
+        $this->assertFalse(is_file('/tmp/earc_event_tree_cache.php'));
+
+        BaseListener::$i = 0;
+        $event = new TestEvent(new PropagationType(['lookup'], [], null));
+        $event->dispatch();
+        $this->assertEquals([
+            '0_eArc\EventTreeTests\env\treeroot\lookup\BasicListener' => 'lookup',
+            '1_eArc\EventTreeTests\env\other\otherTreeRoot\redirect\some\other\BasicListener' => 'lookup',
+            '2_eArc\EventTreeTests\env\treeroot\product\BasicListener' => 'lookup',
+        ], $event->isTouchedByListener);
+
+        $this->assertTrue(is_file('/tmp/earc_event_tree_cache.php'));
+
+        exec(__DIR__.'/../tools/build-cache '.di_param(ParameterInterface::CONFIG_FILE));
+        exec(__DIR__.'/../tools/build-cache '.di_param(ParameterInterface::CONFIG_FILE));
+    }
+
+    /**
+     * @param string|null $configFile
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function bootstrap(?string $configFile = null)
+    {
+        $vendorDir = dirname(__DIR__).'/vendor';
+
+        if (!is_dir($vendorDir)) {
+            $vendorDir = dirname(__DIR__, 3);
+        }
+
+        require_once $vendorDir.'/autoload.php';
+
+        DI::init();
+        di_clear_cache();
+        di_import_param(['earc' => null]);
+        Configuration::build(__DIR__.'/env/'.($configFile ?? '.earc-config.php'));
+    }
 }
+

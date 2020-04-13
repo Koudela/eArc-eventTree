@@ -12,6 +12,7 @@
 namespace eArc\EventTree\Interfaces\Transformation;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
+use eArc\EventTree\Exceptions\UnsuitableEventException;
 use eArc\EventTree\Interfaces\TreeEventInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 
@@ -29,6 +30,7 @@ interface ObserverTreeInterface extends ListenerProviderInterface
      * @return iterable
      *
      * @throws InvalidObserverNodeException
+     * @throws UnsuitableEventException
      */
     public function getListenersForEvent($event): iterable;
 }

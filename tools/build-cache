@@ -1,0 +1,67 @@
+#!/usr/bin/php
+<?php
+
+use eArc\Core\Configuration;
+use eArc\DI\DI;
+use eArc\EventTree\Exceptions\InvalidObserverNodeException;
+use eArc\EventTree\Interfaces\ParameterInterface;
+use eArc\EventTree\Util\CompositeDir;
+use eArc\EventTree\Util\DirectiveReader;
+
+$vendorDir = dirname(__DIR__).'/vendor';
+
+if (!is_dir($vendorDir)) {
+    $vendorDir = dirname(__DIR__, 3);
+}
+
+require $vendorDir.'/autoload.php';
+
+DI::init();
+Configuration::build($argv[1] ?? null);
+
+/**
+ * @param string $path
+ * @return array
+ *
+ * @throws InvalidObserverNodeException
+ */
+function iteratePath(string $path): array
+{
+    $tree = [];
+
+    foreach (CompositeDir::getSubDirNames($path) as $name) {
+        $redirectDirective = DirectiveReader::getRedirect($path);
+        $newPath = $redirectDirective->getPathForLeaf($name);
+
+        $tree[$name]['l'] = di_get(CompositeDir::class)->collectListener($newPath);
+        $tree[$name]['s'] = iteratePath($newPath);
+    }
+
+    return $tree;
+}
+
+function array_to_code(array $array): string
+{
+    $str = '[';
+    foreach ($array as $key => $value) {
+        $str .= transform_value($key).'=>'.transform_value($value).',';
+        if ($key === 'l') $str.= "\n";
+    }
+    return $str.']';
+}
+
+function transform_value($val): string
+{
+    if (null === $val) return 'null';
+    if (is_numeric($val)) return (string) $val;
+    if (is_array($val)) return array_to_code($val);
+    return "'$val'";
+}
+
+$path = '.';
+$listener = di_get(CompositeDir::class)->collectListener('.');
+$cache = ['l' => $listener, 's' => iteratePath($path)];
+file_put_contents(
+    di_param(ParameterInterface::CACHE_FILE, '/tmp/earc_event_tree_cache.php'),
+    '<?php return '.array_to_code($cache).";\n"
+);

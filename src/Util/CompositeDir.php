@@ -13,10 +13,23 @@ namespace eArc\EventTree\Util;
 
 use eArc\EventTree\Exceptions\InvalidObserverNodeException;
 use eArc\EventTree\Interfaces\ParameterInterface;
+use eArc\EventTree\Interfaces\PhaseSpecificListenerInterface;
+use eArc\EventTree\Interfaces\SortableListenerInterface;
+use eArc\EventTree\Transformation\ObserverTree;
 use Iterator;
 
 class CompositeDir implements ParameterInterface
 {
+    /** @var array */
+    protected $listenerCollection = [];
+    /** @var array */
+    protected $blacklist;
+
+    public function __construct()
+    {
+        $this->blacklist = di_param(ParameterInterface::BLACKLIST, []);
+    }
+
     public static function getRootsIterator(): Iterator
     {
         foreach (di_param(ParameterInterface::ROOT_DIRECTORIES) as $rootDir => $rootNamespace) {
@@ -59,22 +72,45 @@ class CompositeDir implements ParameterInterface
 
     /**
      * @param string $path
-     *
-     * @return string[]
+     * @return int[]
      *
      * @throws InvalidObserverNodeException
      */
-    public static function collectListener(string $path): array
+    public function collectListener(string $path): array
+    {
+        if (!isset($this->listenerCollection[$path])) {
+            $listener = CompositeDir::collectListenerClasses($path);
+
+            asort($listener, SORT_NUMERIC);
+
+            foreach ($listener as $fQCN => $patience) {
+                $listener[$fQCN] = self::getPhase($fQCN);
+            }
+
+            $this->listenerCollection[$path] = $listener;
+        }
+
+        return $this->listenerCollection[$path];
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return bool[]
+     *
+     * @throws InvalidObserverNodeException
+     */
+    protected function collectListenerClasses(string $path): array
     {
         $listener = [];
 
         $directoryFound = false;
 
         foreach(DirectiveReader::getLookup($path) as $realPathRelativeToTreeRoot) {
-            $directoryFound = static::collectLocalListener($realPathRelativeToTreeRoot, $listener) || $directoryFound;
+            $directoryFound = $this->collectListenerClassesByPath($realPathRelativeToTreeRoot, $listener) || $directoryFound;
         }
 
-        if (!$directoryFound) {
+        if (!$directoryFound && di_param(ParameterInterface::REPORT_INVALID_OBSERVER_NODE, true)) {
             throw new InvalidObserverNodeException(sprintf('Path `%s` is no valid directory for an observer node.', $path));
         }
 
@@ -87,7 +123,7 @@ class CompositeDir implements ParameterInterface
      *
      * @return bool
      */
-    protected static function collectLocalListener(string $path, array &$listener): bool
+    protected function collectListenerClassesByPath(string $path, array &$listener): bool
     {
         $directoryFound = false;
         $namespace = str_replace('/', '\\', $path);
@@ -101,13 +137,32 @@ class CompositeDir implements ParameterInterface
 
                 foreach (scandir('.', SCANDIR_SORT_NONE) as $fileName) {
                     if (is_file($fileName) && substr($fileName, -4) === '.php') {
-                        $className = $fullNamespace.'\\'.substr($fileName, 0, -4);
-                        $listener[$className] = $className;
+                        $fQCN = $fullNamespace.'\\'.substr($fileName, 0, -4);
+                        if (!$this->isBlacklisted($fQCN)) {
+                            $listener[$fQCN] = self::getPatience($fQCN);
+                        }
                     }
                 }
             }
         }
 
         return $directoryFound;
+    }
+
+    protected static function getPatience(string $fQCN): float
+    {
+        /** @var SortableListenerInterface $fQCN */
+        return is_subclass_of($fQCN, SortableListenerInterface::class) ? $fQCN::getPatience() : 0;
+    }
+
+    protected static function getPhase(string $fQCN): int
+    {
+        /** @var PhaseSpecificListenerInterface $fQCN */
+        return is_subclass_of($fQCN, PhaseSpecificListenerInterface::class) ? $fQCN::getPhase() : ObserverTree::PHASE_ACCESS;
+    }
+
+    protected function isBlacklisted(string $fQCN): bool
+    {
+        return isset($this->blacklist[$fQCN]) && $this->blacklist[$fQCN];
     }
 }

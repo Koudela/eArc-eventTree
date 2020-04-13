@@ -11,9 +11,18 @@
 
 namespace eArc\EventTree\Interfaces;
 
-interface ParameterInterface
+use eArc\Core\Interfaces\ParameterInterface as InterfaceBase;
+
+interface ParameterInterface extends InterfaceBase
 {
-    const VENDOR_DIR = 'earc.vendor_directory';
+    /** [root_dir_relative_to_vendor => root_namespace] required */
     const ROOT_DIRECTORIES = 'earc.event_tree.directories';
+    /** [fQCN => true] defaults to [] */
     const BLACKLIST = 'earc.event_tree.blacklist';
+    /** bool defaults to false */
+    const USE_CACHE = 'earc.event_tree.use_cache';
+    /** string defaults to '/tmp/earc_event_tree_cache.php' */
+    const CACHE_FILE = 'earc.event_tree.cache_file';
+    /** bool defaults to true */
+    const REPORT_INVALID_OBSERVER_NODE = 'earc.event_tree.report_invalid_observer_node';
 }

@@ -38,8 +38,11 @@ restrictions on it.
    - [Extending (third party) observer trees](#extending-third-party-observer-trees)
    - [The redirect directive](#the-redirect-directive)
    - [The lookup directive](#the-redirect-directive)
+   - [Performance optimization](#performance-optimization)
+   - [The view tree tool](#the-view-tree-tool)
  - [Conclusion](#conclusion)
  - [Releases](#releases)
+   - [Release 2.0](#release-20)
    - [Release 1.1](#release-11)
    - [Release 1.0](#release-10)
    - [Release 0.0](#release-00)
@@ -53,38 +56,48 @@ composer install earc/event-tree
 ## Bootstrap
 
 earc/event-tree uses [earc/di](https://github.com/Koudela/eArc-di) for dependency
-injection. 
+injection and [earc/core](https://github.com/Koudela/eArc-core) for the configuration
+file. 
 
 ```php
+use eArc\Core\Configuration;
 use eArc\DI\DI;
 
 DI::init();
+Configuration::build();
 ```
 
-Place the above code in the section where your script/framework is 
-bootstrapped.
+Place the above code in the section where your script/framework is bootstrapped
+or your `index.php`.
 
 ## Configure
 
-The event trees live in a folder in your project directory. It is possible to 
-import and even extend trees from other projects. Hence the 
-`earc.vendor_directory` parameter has to be set.
+Put a file named `.earc-config.php` beneath the vendor dir. Its the configuration 
+file for all the earc components.
 
 ```php
-di_import_param(['earc' => ['vendor_directory' => __DIR__.'/../../vendor']]);
+<?php #.earc-config.php
+
+return ['earc' => [
+    'is_production_environment' => false,
+    'event_tree' => [
+        'directories' => [
+            '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
+        ]
+    ]
+]];
+
 ```
+
+The event trees live in a folder in your project directory. It is possible to 
+import and even extend trees from other projects.
 
 Best practice is to have only one directory which is the root for all your event
 trees. This constrain ensures that every developer who is or will be engaged in 
 your project can easily keep track of all event trees.
 
-```php
-di_import_param(['earc' => ['event_tree' => ['directories' => [
-    '../path/to/your/eventTree/root/folder' => '\\your\\eventTree\\root\\namespace',
-]]]]);
-```
-
-The path of the root folder has to be relative to your projects vendor directory.
+The path of the root folder has to be relative to your projects vendor directory
+or an absolute path.
 
 ## Basic Usage
 
@@ -549,17 +562,49 @@ routing/imported/products
 imported
 ```
 
-### View Observer Tree
+### Performance optimization
+
+The concept of the event tree is deeply rooted in the file system. File access is
+not cheap in terms of time and can be a bottle neck. If you use a file cache like
+[ACPu](https://www.php.net/manual/en/book.apcu.php) it is worth considering loading
+the event tree structure (even if it may be huge) into memory. This is done via 
+a static file. Please note that earc/event-tree writes this file only if it is 
+not found. If you make changes to the tree you have to delete the file or regenerate 
+it via the commandline script `build-cache` manually.
+
+To use the cache add the following lines to the `event_tree` section in your `.earc-config.php`.
+
+```php
+#.earc-config.php
+//...
+    'event_tree' => [
+        'use_cache' => true,
+        'cache_file' => '/absolute/path/to/your/cache_file.php', 
+        'report_invalid_observer_node' => false,
+    ],
+//...
+```
+
+If you omit the `cache_file` parameter it defaults to `/tmp/earc_event_tree_cache.php`.
+
+The `report_invalid_observer_node` defaults to true. Setting it to false suppresses
+the `InvalidObserverNodeException` in the cases the tree has some false configured
+subtree. Thus the tree cache file can be written even if some part of the tree fails.
+
+Hint: If you use a customized config file location you have to pass the file location 
+as parameter to the script `vendor/earc/event-tree/tools/build-cache`. 
+
+### The view tree tool
 
 To get a picture of a observer tree and the listener living in it use the command
 line tool `view-tree`.
 
 ```shell script
-vendor/earc/event-tree/tools/view-tree 'path/tree/root/1' 'namespace\\1' 'path/tree/root/2' 'namespace\\2' 'path/tree/root/3' 'namespace\\3'
+vendor/earc/event-tree/tools/view-tree
 ```
 
-The paths have to be relative to the vendor directory (like the `earc.event_tree.directories`
-parameter). 
+Hint: If you use a customized config file location you have to pass the file location 
+as parameter. 
 
 ## Conclusion
 
@@ -571,6 +616,11 @@ Of course you can stay to your architectural style as well, use your preferred
 framework furthermore and add event trees as an explicit way of event handling.
 
 ## Releases
+
+### Release 2.0
+
+- bootstrap via [earc/core](https://github.com/Koudela/eArc-core)
+- caching of the observer tree
 
 ### Release 1.1
 
