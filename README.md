@@ -212,7 +212,7 @@ If `maxDepth` is configured to `null` there is no restriction. For example if
 `0` is supplied as argument the event would die after visiting the destination 
 observer leaf.
 
-The `PropagationType` is immutable. Thus these criteria cannot be altered once 
+The `PropagationType` is immutable. Thus, these criteria cannot be altered once 
 the event build. They define the four 
 [traveling phases](#listening-to-specific-traveling-phases).
 
@@ -253,7 +253,7 @@ class MyListener implements ListenerInterface, SortableListenerInterface
 
 As smaller the patience the sooner the listener is called.
 
-Hint: If two listener have the same patience you cannot rely on the order they 
+Hint: If two listeners have the same patience you cannot rely on the order they 
 are called.    
 
 ### Listening to specific traveling phases
@@ -264,12 +264,13 @@ The `PropagationType` gives birth to four event phases:
 - `destination` - the event is on its `destination` vertice. 
 - `beyond` - the event has traveled beyond its `destination` vertice.
 
-If `destination` is empty there is no `destination` phase nor a `before` phase.
+If `destination` is empty the `start` phase is also a `before` phase 
+and a `destination` phase.
 
 Listeners implementing the `PhaseSpecificListenerInterface` can listen to one, 
 two or three instead of all four event phases. Use the `ObserverTreeInterface` 
 constants `PHASE_START`, `PHASE_BEFORE`, `PHASE_DESTINATION` and `PHASE_BEYOND`.
-If you listen to more then one use a bit field (concat them by `|`). 
+If you listen to more than one use a bit field (concat them by `|`). 
 
 ```php
 use eArc\Observer\Interfaces\ListenerInterface;
@@ -299,7 +300,7 @@ which is a shortcut for listening to all four event phases.
 
 ### Manipulating the traveling of dispatched events
 
-Listeners can not change the immutable `PropagationType`, but they can restrict
+Listeners cannot change the immutable `PropagationType`, but they can restrict
 the traveling of events. This comes handy if you want to implement the chain of 
 responsibility pattern or similar using an event tree. 
 
@@ -348,7 +349,7 @@ children of the observer leaf.
 
 But the current observer does not stop his work on the current listener stack.
 
-Keep in mind in the `beyond` phase there are active observer who are not children
+Keep in mind in the `beyond` phase there are active observers who are not children
 oder parents of the current observer.
 
 You can dismiss them by calling `tie()`.
@@ -616,6 +617,10 @@ Of course you can stay to your architectural style as well, use your preferred
 framework furthermore and add event trees as an explicit way of event handling.
 
 ## Releases
+
+### Release 2.1
+
+- every event has a `before` and a `destination` phase 
 
 ### Release 2.0
 

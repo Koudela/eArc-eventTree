@@ -70,7 +70,11 @@ abstract class AbstractObserverTree implements ObserverTreeInterface, ParameterI
             $this->addChild($event, $name);
         }
 
-        foreach ($this->yieldListener($event, self::PHASE_START) as $callable) {
+        $phase = !empty($event->getPropagationType()->getDestination()) ?
+            self::PHASE_START :
+            self::PHASE_START | self::PHASE_BEFORE | self::PHASE_DESTINATION;
+
+        foreach ($this->yieldListener($event, $phase) as $callable) {
             yield $callable;
         }
 
@@ -91,7 +95,7 @@ abstract class AbstractObserverTree implements ObserverTreeInterface, ParameterI
         foreach ($event->getPropagationType()->getDestination() as $key => $name) {
             $this->addChild($event,$name);
 
-            foreach ($this->yieldListener($event, $lastKey !== $key ? self::PHASE_BEFORE : self::PHASE_DESTINATION) as $callable) {
+            foreach ($this->yieldListener($event, $lastKey !== $key ? self::PHASE_BEFORE : (0 === $lastKey ? self::PHASE_BEFORE | self::PHASE_DESTINATION : self::PHASE_DESTINATION)) as $callable) {
                 yield $callable;
             }
 
