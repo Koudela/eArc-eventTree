@@ -26,7 +26,7 @@ abstract class AbstractObserverTree implements ObserverTreeInterface, ParameterI
     public function getListenersForEvent($event): iterable
     {
         if (!is_subclass_of($event, TreeEventInterface::class)) {
-            throw new UnsuitableEventException(sprintf('Event %s has to implement the %s', get_class($event), TreeEventInterface::class));
+            throw new UnsuitableEventException(sprintf('{669d4d72-cfd7-477b-a87a-a2d476c67b97} Event %s has to implement the %s', get_class($event), TreeEventInterface::class));
         }
 
         $this->resetTreeState();

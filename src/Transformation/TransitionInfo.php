@@ -12,6 +12,7 @@
 namespace eArc\EventTree\Transformation;
 
 use eArc\EventTree\Interfaces\Transformation\TransitionInfoInterface;
+use function array_key_last;
 
 class TransitionInfo implements TransitionInfoInterface
 {

@@ -37,7 +37,7 @@ class Redirect
     public function getPathForLeaf(string $leafName): string
     {
         if (isset($this->invalidLeafs[$leafName])) {
-            throw new InvalidObserverNodeException(sprintf('Leaf `%s` is excluded by the .redirect directive of `%s`.', $leafName, $this->realPathRelativeToTreeRoot));
+            throw new InvalidObserverNodeException(sprintf('{fa25945b-2744-4e65-baa7-ee3c99d2c9a7} Leaf `%s` is excluded by the .redirect directive of `%s`.', $leafName, $this->realPathRelativeToTreeRoot));
         }
 
         if (!isset($this->leafPaths[$leafName]) || '~' === $this->leafPaths[$leafName]) {

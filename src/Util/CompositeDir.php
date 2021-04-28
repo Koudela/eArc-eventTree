@@ -111,7 +111,10 @@ class CompositeDir implements ParameterInterface
         }
 
         if (!$directoryFound && di_param(ParameterInterface::REPORT_INVALID_OBSERVER_NODE, true)) {
-            throw new InvalidObserverNodeException(sprintf('Path `%s` is no valid directory for an observer node.', $path));
+            throw new InvalidObserverNodeException(sprintf(
+                '{5c449853-10a2-4035-bca0-14a463ecca7a} Path `%s` is no valid directory for an observer node.',
+                $path
+            ));
         }
 
         return $listener;

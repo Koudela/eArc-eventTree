@@ -51,7 +51,7 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     public function dispatch(): void
     {
         if (null !== $this->handler) {
-            throw new IsDispatchedException('This event has been dispatched already.');
+            throw new IsDispatchedException('{7e09797c-cce8-4580-b933-50bcd5077d81} This event has been dispatched already.');
         }
 
         $this->handler = new Handler($this);
@@ -64,7 +64,7 @@ class TreeEvent implements StoppableEventInterface, TreeEventInterface
     public function getHandler(): HandlerInterface
     {
         if (null === $this->handler) {
-            throw new IsNotDispatchedException('The event has not been dispatched yet.');
+            throw new IsNotDispatchedException('{1f5a20cb-bb3d-4d34-b00d-f6a7229e6162} The event has not been dispatched yet.');
         }
 
         return $this->handler;

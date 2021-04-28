@@ -42,6 +42,7 @@ restrictions on it.
    - [The view tree tool](#the-view-tree-tool)
  - [Conclusion](#conclusion)
  - [Releases](#releases)
+   - [Release 2.1](#release-21)
    - [Release 2.0](#release-20)
    - [Release 1.1](#release-11)
    - [Release 1.0](#release-10)
@@ -617,6 +618,10 @@ Of course you can stay to your architectural style as well, use your preferred
 framework furthermore and add event trees as an explicit way of event handling.
 
 ## Releases
+
+### Release 2.1
+
+- PHP ^7.3 || ^8.0
 
 ### Release 2.1
 

@@ -48,7 +48,7 @@ class CacheObserverTree extends AbstractObserverTree implements ParameterInterfa
     {
         if (!isset($this->currentEventTree['s'][$name])) {
             throw new InvalidObserverNodeException(sprintf(
-                'Path `%s` is no valid directory for an observer node.',
+                '{1694cff8-4582-4e66-bc6c-0a33a141abdd} Path `%s` is no valid directory for an observer node.',
                 implode('/', $event->getTransitionInfo()->getCurrentPath()).'/'.$name
             ));
         }
